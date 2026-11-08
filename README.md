@@ -1,58 +1,28 @@
-# IFDSM — The Question Bank (GitHub Pages website)
+# IFDSM SBA Question Bank - Answer-Format Revised Edition
 
-Mobile-friendly, static HTML edition of **The Question Bank — Notes in Dental Sleep Medicine**, with **1,000 actual questions, answer explanations and all 78 learning-outcome sections**. No hosting backend, account, special build step, or third-party dependencies.
+This GitHub Pages folder replaces the earlier IFDSM exam-style website. It retains the 224-page integrated revision notebook and the author-edition cover.
 
-## Publish on GitHub Pages (browser method)
+## This correction
 
-1. Extract `IFDSM_GitHub_Pages_Website_Updated.zip` on your computer.
-2. On GitHub, select **New repository**. For example name it `ifdsm-question-bank`, select **Public**, and create the repository. (On GitHub Free, Pages requires a public repository.)
-3. In the repository, select **Add file → Upload files**. Upload **the contents of the extracted `IFDSM_GitHub_Pages_Website` folder**, including `index.html`, `assets`, `data`, `resources`, `.nojekyll`, `manifest.webmanifest`, and `sw.js`. The `index.html` must be in the repository root, not inside an extra folder.
-4. Commit the files.
-5. Go to **Settings → Pages → Build and deployment**. Choose **Deploy from a branch**, then select **main** and **/(root)** and save.
-6. Your site address will resemble `https://YOUR-USERNAME.github.io/ifdsm-question-bank/`.
-7. Open the URL in **Safari** on your iPhone/iPad. Use **Share → Add to Home Screen** to install the shortcut.
+- All **1,000 questions** remain present in the same numbered order with the same A-E correct-answer positions.
+- **471 question items** (applied clinical and focused-knowledge items) had their option wording edited. The reused source-note fragments were consolidated into short, self-contained statements.
+- The example concerning non-anatomical OSA traits is now a proper single-sentence option; its PALM endotype statistics are explained in the rationale.
+- One mislabelled section reference (question 71) was corrected to section 1.3.
+- Explanations, 160 authored clinical decision cases, 369 concept-interpretation questions and all topic grouping are retained.
+- The website and printable PDF now read from the same revised data.
 
-No domain, API key, database, Node/npm, or GitHub Actions configuration is required.
+## Publish on GitHub Pages
 
-## How to use
+1. Unzip and upload **all contents** of this folder to the repository root (replace the old files). Keep `index.html`, `assets/`, `data/`, `resources/`, `sw.js` and `manifest.webmanifest` intact.
+2. Commit to the branch serving GitHub Pages. Reload once in Safari **while online** to update the offline cache.
+3. Continue in Practice, Exam, Browse or Notebook. Saving and restoring answers use existing local browser storage.
 
-- **Home**: Topic overview and quick launch. The white book-style cover matches the author edition.
-- **Practice**: Choose a topic, question type, order, and question count. Select A–E to see immediate justification and learning-code reference.
-- **Mock exam**: Hide answers until completion. Track your elapsed time, go back to previous questions, and see a scored review.
-- **Browse all**: Search by topic, syllabus section, or keywords; bookmark questions.
-- **Progress**: Unique questions attempted, accuracy by competency, session history, bookmarks, and JSON export/import.
-- **Notebook**: Open the original 224-page final integrated revision PDF, navigate ten topics by page number, or save the full file to your device.
-- **About**: Download the PDF author edition and the final integrated revision notebook in the `resources/` folder.
+## Progress and scoring
 
-**New — Final Integrated Revision Notebook:** The 224-page `Dental_Sleep_Medicine_IFDSM (Final) .pdf` you supplied is already byte-for-byte identical to the PDF included at `resources/IFDSM_Integrated_Revision_Notebook.pdf`. This update exposes that same document on a new **Notebook** tab, with all ten competency page references, high-yield versus full study page ranges, master-number tables, mock paper, and source bibliography. It retains the exact original illustrations, formatting, and PDF bookmarks; no duplicate file is stored. PDF topic page-jump links depend on the device viewer, so the page numbers are displayed beside each link.
+Since question numbers and correct option indices are unchanged, the existing same-edition progress record (`ifdsm-sba-examstyle-v2`) remains compatible. Export a backup from Progress before updating, as a precaution. Older pre-exam-style progress remains separate.
 
-The website remembers progress in the device's `localStorage`. Results do not automatically synchronize between devices. Use **Export progress JSON** from your first device and **Import progress JSON** on another device to transfer your results. Import overwrites the second device's local progress.
+## QA and editorial caveat
 
-## Offline use
+Run `node qa/check-webapp.js` for deterministic scoring, navigation and persistence checks. `qa/answer_format_edits.csv` records each changed option.
 
-Once loaded from GitHub Pages over HTTPS, the website installs a service worker to cache `index.html`, CSS, JavaScript, question data, and app icons. You should open the site online once before expecting offline availability. After future updates, revisit online to load new content. The PDFs are available in `resources/` and can be saved separately; they are not automatically preloaded for offline use.
-
-## File layout
-
-```
-index.html                   Single-page website
-.nojekyll                    Disable Jekyll processing on GitHub Pages
-assets/styles.css            Responsive iPhone, iPad, and desktop styling
-assets/app.js                Practice, exam, answer review, bookmarks, local progress
-assets/icon.svg              Website icon
-assets/icon-192.png          iOS home-screen icon
-assets/icon-512.png          Home-screen / PWA icon
-data/questions.js            All 1,000 questions, original options and explanations
-manifest.webmanifest         Add-to-home-screen metadata
-sw.js                        Offline caching for core site
-resources/IFDSM_Integrated_Revision_Notebook.pdf   Exact uploaded final 224-page notebook
-resources/IFDSM_Question_Bank_Author_Edition.pdf   Question bank PDF
-assets/notebook-cover.webp  Preview of the actual notebook front cover
-```
-
-## Important notes
-
-- Single-best-answer is always **one selection from A–E**. Some questions have "all of the above" or "none of the above" as individual options, not multiple-selection answers.
-- The site is an **independent revision aid**, **not** an official IFDSM examination or clinical care guideline.
-- GitHub Pages sites are publicly accessible even if the repository is private under some paid plans; do not upload confidential, patient-identifying or restricted materials.
-- If you need to correct/edit a question, make changes in `data/questions.js` and update the service-worker cache version in `sw.js` so returning visitors receive the updated data. For larger editing workflows, maintain a separate original source data file and regenerate the JS.
+This update improves **the format of answer options**, not the independently established clinical validity or true exam equivalence of every question. Some earlier recall/interpretation items still have comparatively simple or distant distractors, and the original learning-outcome assignments beyond the specifically corrected example have not all been independently medically peer-reviewed. No endorsement by IFDSM is claimed.

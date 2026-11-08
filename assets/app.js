@@ -20,12 +20,15 @@
 
   const KINDS = [
     ['all', 'All question types'],
-    ['case', 'Integrated clinical vignettes'],
-    ['application', 'Clinical-context applications'],
-    ['knowledge', 'Focused knowledge questions'],
-    ['allnone', 'All / none of the above']
+    ['case', 'Clinical decision-making'],
+    ['application', 'Applied clinical reasoning'],
+    ['interpretation', 'Clinical interpretation'],
+    ['knowledge', 'Focused knowledge']
   ];
-  const KEY = 'ifdsm-sba-web-v1';
+  const KEY = 'ifdsm-sba-examstyle-v2';
+  const LEGACY_KEY = 'ifdsm-sba-web-v1';
+  let legacyAvailable = false;
+  try { legacyAvailable = !!localStorage.getItem(LEGACY_KEY); } catch (e) {}
   const root = document.getElementById('main-app');
   if (!Q.length || !root) {
     if (root) root.innerHTML = '<div class="empty">Question data could not be loaded. Ensure the entire website folder was uploaded, including <strong>data/questions.js</strong>.</div>';
@@ -39,23 +42,80 @@
   const isClinical = q => q.kind === 'Integrated clinical vignette' || q.kind === 'Clinical-context application';
   const fmtDate = ts => {try {return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});} catch(e) {return '—';}};
   const fmtTime = ms => { const n = Math.floor(Math.max(0,ms)/1000); return `${String(Math.floor(n/3600)).padStart(2,'0')}:${String(Math.floor(n/60)%60).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`; };
-  const answerCount = sess => sess ? Object.values(sess.answers).filter(v => Number(v)>=0).length : 0;
+  const validChoice = n => Number.isInteger(n) && n >= 0 && n <= 4;
+  const answerCount = sess => sess ? Object.values(sess.answers).filter(validChoice).length : 0;
+  function scoreSession(sess){
+    if(!sess)return {total:0,answered:0,correct:0,incorrect:0,revealed:0,unanswered:0};
+    let answered=0,correct=0,revealed=0;
+    for(const id of sess.order){
+      const given=sess.answers[id],q=BY_ID.get(id);
+      if(validChoice(given)) {answered++; if(q && given===q.key) correct++;}
+      else if(given===-1) revealed++;
+    }
+    return {total:sess.order.length,answered,correct,incorrect:answered-correct,revealed,
+      unanswered:sess.order.length-answered-revealed};
+  }
   const storage = {
     read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e){return null;} },
     write(value) { try {localStorage.setItem(KEY,JSON.stringify(value));return true;}catch(e){return false;} }
   };
   const stored = storage.read() || {};
-  const db = {progress: stored.progress && typeof stored.progress==='object'? stored.progress:{}, bookmarks: Array.isArray(stored.bookmarks)?stored.bookmarks:[], history:Array.isArray(stored.history)?stored.history:[], session:stored.session || null, theme: stored.theme || 'light'};
+  // Use a new progress record because revised question wording, answer options and keys are not compatible with the first bank. Legacy records remain untouched.
+  const cleanProgress = {};
+  if(stored.progress && typeof stored.progress === 'object' && !Array.isArray(stored.progress)){
+    for(const [id,p] of Object.entries(stored.progress)){
+      const q=BY_ID.get(Number(id));
+      if(!q || !p || !validChoice(p.answer))continue;
+      cleanProgress[q.number]={answer:p.answer,correct:p.answer===q.key,
+        tries:Number.isInteger(p.tries)&&p.tries>0?Math.min(p.tries,100000):1,
+        updated:Number.isFinite(p.updated)?p.updated:Date.now()};
+    }
+  }
+  function cleanSession(s){
+    if(!s || !['study','exam'].includes(s.mode) || !Array.isArray(s.order) || !s.order.length)return null;
+    const order=s.order.map(Number);
+    if(order.some(id=>!BY_ID.has(id)) || new Set(order).size!==order.length || order.length>Q.length)return null;
+    const answers={};
+    if(s.answers && typeof s.answers === 'object')for(const id of order){
+      const v=s.answers[id];if(validChoice(v) || (s.mode==='study' && v===-1))answers[id]=v;
+    }
+    const startedAt=Number(s.startedAt);
+    return {mode:s.mode,order,answers,
+      current:Number.isInteger(s.current)?Math.max(0,Math.min(order.length-1,s.current)):0,
+      startedAt:Number.isFinite(startedAt)&&startedAt>0?startedAt:Date.now(),
+      submitted:s.submitted===true,topic:String(s.topic||'all'),kind:String(s.kind||'all'),
+      finishedAt:Number.isFinite(s.finishedAt)?s.finishedAt:null};
+  }
+  const cleanHistory=Array.isArray(stored.history)?stored.history.filter(h=>h && ['study','exam'].includes(h.mode) && Number.isInteger(h.correct) && Number.isInteger(h.total) && h.total>0 && h.correct>=0 && h.correct<=h.total && Number.isInteger(h.answered) && h.answered>=h.correct && h.answered<=h.total).slice(0,35):[];
+  const db = {progress:cleanProgress,
+    bookmarks:Array.isArray(stored.bookmarks)?[...new Set(stored.bookmarks.filter(Number.isInteger).filter(n=>BY_ID.has(n)))]:[],
+    history:cleanHistory,session:cleanSession(stored.session),theme:stored.theme==='dark'?'dark':'light'};
   const ui = {
     view: (location.hash || '#home').replace('#','').split('?')[0],
-    setupTopic: 'all', setupKind: 'all', setupCount: '20',
+    setupTopic: 'all', setupKind: 'all', setupCount: '20', setupPool:'unseen', examPool:'all',
     browseTopic:'all',browseKind:'all',browseSection:'all',browseSearch:'',browseBookmarks:false,browsePage:1,
-    browseDetail:null,browseReveal:false,reviewId:null
+    browseDetail:null,browseReveal:false,reviewId:null,missedPage:1
   };
   const VIEWS = new Set(['home','practice','exam','browse','browse-detail','session','progress','results','review','notebook','about']);
-  if(!VIEWS.has(ui.view))ui.view='home';
-  if(ui.view==='session' && (!db.session||db.session.submitted))ui.view='home';
-  if(ui.view==='results' && (!db.session||!db.session.submitted))ui.view='home';
+  function routeFromHash(){
+    const hash=(location.hash||'#home').slice(1),[v,query='']=hash.split('?');
+    if(v==='main-app')return ui.view||'home'; // Accessibility skip-to-content anchor is not a screen route.
+    let view=VIEWS.has(v)?v:'home';
+    const id=Number(new URLSearchParams(query).get('question'));
+    if(view==='browse-detail'){
+      if(BY_ID.has(id))ui.browseDetail=id;
+      else view='browse';
+    }
+    if(view==='review'){
+      if(!db.session?.submitted)view='home';
+      else if(BY_ID.has(id) && db.session.order.includes(id))ui.reviewId=id;
+      else view='results';
+    }
+    if(view==='session' && (!db.session||db.session.submitted))view=db.session?.submitted?'results':'home';
+    if(view==='results' && (!db.session||!db.session.submitted))view=db.session?'session':'home';
+    return view;
+  }
+  ui.view=routeFromHash();
   document.documentElement.dataset.theme=db.theme==='dark'?'dark':'light';
   let toastTimeout = 0;
   const toast = message => {
@@ -63,12 +123,20 @@
     el.textContent=message;el.classList.add('show');clearTimeout(toastTimeout);
     toastTimeout=setTimeout(()=>el.classList.remove('show'),3000);
   };
-  const persist=()=>storage.write(db);
+  let storageWarningShown=false;
+  const persist=()=>{const ok=storage.write(db);
+    if(!ok && !storageWarningShown){storageWarningShown=true;toast('Browser storage is unavailable: progress will not survive closing this tab.');}
+    return ok;
+  };
   const percent=(a,b)=>b ? Math.round(100*a/b):0;
   function setView(view){
-    if(!VIEWS.has(view)) view='home';
+    if(!VIEWS.has(view))view='home';
+    if(view==='review' && (!db.session?.submitted || !db.session.order.includes(ui.reviewId)))view='results';
+    if(view==='browse-detail' && !BY_ID.has(ui.browseDetail))view='browse';
     ui.view=view;
-    if(location.hash !== '#'+view) history.replaceState(null,'','#'+view);
+    const detail=view==='browse-detail'?`?question=${ui.browseDetail}`:view==='review'?`?question=${ui.reviewId}`:'';
+    const target='#'+view+detail;
+    if(location.hash!==target)history.pushState(null,'',target);
     render();
     window.scrollTo({top:0,behavior:'instant'});
   }
@@ -92,7 +160,7 @@
     return `<section class="hero">
       <div><div class="eyebrow">Volume II · Examination revision</div>
         <h1>The Question Bank<br/><em>Dental Sleep Medicine</em></h1>
-        <p class="lede">1,000 single-best-answer questions with clinical scenarios, answer justifications, and syllabus section references across all ten IFDSM competencies.</p>
+        <p class="lede">1,000 reworked clinical-style SBAs with answer justifications, and syllabus section references across all ten IFDSM competencies.</p>
         <div class="hero-actions">
           ${isActive?'<button data-action="continue" class="btn btn-teal" type="button">▶ Continue your session</button>':'<button data-action="nav" data-view="practice" class="btn btn-primary" type="button">▶ Start practising</button>'}
           <button data-action="nav" data-view="exam" class="btn btn-outline" type="button">Start a mock exam</button>
@@ -122,38 +190,45 @@
       <div class="simple-ribbon"><strong>How this edition works:</strong> Read the case, choose the single best option (A–E), then use the explanation and syllabus reference to revise. In <strong>practice mode</strong> answers appear immediately; in <strong>mock exam mode</strong> they remain hidden until submission. Your progress and bookmarks are stored locally on this device.</div>`;
   }
   function renderSetup(mode){
-    const exam=mode==='exam';
+    const exam=mode==='exam',chosenPool=exam?ui.examPool:ui.setupPool;
     return `${pageHeading(exam?'Timed simulation · No feedback until submission':'Learning mode · Immediate explanations',exam?'Mock examination':'Practice and revision',exam?'Complete an examination-length set without seeing answers. Check the complete marking and justifications after submission.':'Build a targeted question set from any of the ten competencies. Immediate feedback helps you learn from each answer.')}
       <div class="setup-layout"><section class="card"><h3>Configure your ${exam?'exam':'practice'} session</h3>
         <div class="setup-grid">
           <div class="field"><label for="setup-topic">Topic / competency</label><select id="setup-topic">${topicOptions(ui.setupTopic)}</select></div>
           <div class="field"><label for="setup-count">Number of questions</label><select id="setup-count">${(exam?[25,50,100,200,1000]:[10,20,25,50,100,1000]).map(n=>`<option value="${n}" ${String(n)===ui.setupCount?'selected':''}>${n===1000?'All 1,000':n+' questions'}</option>`).join('')}</select></div>
           <div class="field"><label for="setup-kind">Question style</label><select id="setup-kind">${kindOptions(ui.setupKind)}</select></div>
+          <div class="field"><label for="setup-pool">Question selection</label><select id="setup-pool"><option value="unseen" ${chosenPool==='unseen'?'selected':''}>Unanswered questions first (new questions only)</option><option value="all" ${chosenPool==='all'?'selected':''}>All questions (including repeats)</option><option value="incorrect" ${chosenPool==='incorrect'?'selected':''}>Previously incorrect only</option><option value="bookmarked" ${chosenPool==='bookmarked'?'selected':''}>Bookmarked questions only</option></select></div>
           <div class="field"><label for="setup-order">Order</label><select id="setup-order"><option value="random">Shuffle questions</option><option value="sequential">Question-bank order</option></select></div>
         </div>
         <button data-action="start-session" data-mode="${mode}" class="btn btn-primary" type="button">${exam?'Begin mock examination':'Begin practice'} →</button>
         ${db.session&&!db.session.submitted?'<button data-action="continue" class="btn btn-outline" type="button" style="margin-left:8px">Resume previous session</button>':''}
       </section><aside class="card card-muted"><h3>${exam?'Examination rules':'Revision method'}</h3>
-        <div class="mode-note">${exam?'<p><strong>One best answer per question.</strong> All, none and combined-answer options still count as one A–E selection.</p><p>You may change answers or revisit questions before submitting. A running clock is shown, but the test does not auto-submit.</p><p>The score, missed questions and individual explanations appear only after you finish.</p>':'<p><strong>Read → answer → explain → move on.</strong> Each response reveals the correct option, the teaching rationale and the section in your integrated notebook.</p><p>You can also reveal an answer without choosing an option. Bookmark difficult questions for later review.</p><p>Progress is saved on your browser automatically.</p>'}</div>
+        <div class="mode-note">${exam?'<p><strong>One best answer per question.</strong> Choose the SINGLE most appropriate answer from A–E. Do not select multiple options.</p><p>You may change answers or revisit questions before submitting. A running clock is shown, but the test does not auto-submit.</p><p>The score, missed questions and individual explanations appear only after you finish.</p>':'<p><strong>Read → answer → explain → move on.</strong> Each response reveals the correct option, the teaching rationale and the section in your integrated notebook.</p><p>You can also reveal an answer without choosing an option. Bookmark difficult questions for later review.</p><p>Progress is saved on your browser automatically.</p>'}</div>
         <p style="font-size:12px;color:var(--muted);margin-top:18px">For a comprehensive revision set, select <strong>All ten competencies</strong> and mix clinical and knowledge questions.</p></aside></div>`;
   }
   function kindMatches(q,kind){
     if(kind==='all')return true;
-    if(kind==='case')return q.kind==='Integrated clinical vignette';
-    if(kind==='application')return q.kind==='Clinical-context application';
-    if(kind==='knowledge')return q.kind==='Targeted knowledge / discriminative SBA';
-    if(kind==='allnone')return q.kind.includes('above');
+    if(kind==='case')return q.kind==='Clinical decision-making SBA';
+    if(kind==='application')return q.kind==='Applied clinical SBA';
+    if(kind==='interpretation')return q.kind==='Clinical interpretation SBA';
+    if(kind==='knowledge')return q.kind==='Focused knowledge SBA';
     return true;
   }
   function startSession(mode){
     if(db.session&&!db.session.submitted && !window.confirm('Start a new session? Your unfinished session will be replaced.'))return;
     const topic=document.getElementById('setup-topic')?.value||'all';
-    const count=Number(document.getElementById('setup-count')?.value||20);
+    const requested=Number(document.getElementById('setup-count')?.value||20);
+    const count=Number.isInteger(requested)&&requested>0?Math.min(Q.length,requested):20;
     const kind=document.getElementById('setup-kind')?.value||'all';
     const order=document.getElementById('setup-order')?.value||'random';
+    const pick=document.getElementById('setup-pool')?.value||'all';
     ui.setupTopic=topic;ui.setupCount=String(count);ui.setupKind=kind;
-    let pool=Q.filter(q=>(topic==='all'||String(q.topic)===topic)&&kindMatches(q,kind)).map(q=>q.number);
-    if(!pool.length){toast('No questions match this combination. Choose another topic or style.');return;}
+    if(mode==='exam')ui.examPool=pick;else ui.setupPool=pick;
+    let pool=Q.filter(q=>(topic==='all'||String(q.topic)===topic)&&kindMatches(q,kind)
+      && (pick==='all' || (pick==='unseen'&&!db.progress[q.number]) ||
+          (pick==='incorrect'&&db.progress[q.number]&&!db.progress[q.number].correct) ||
+          (pick==='bookmarked'&&db.bookmarks.includes(q.number)))).map(q=>q.number);
+    if(!pool.length){toast('No matching questions remain. Change “Question selection” to All questions or adjust the filters.');return;}
     if(order==='random')for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
     pool=pool.slice(0,Math.min(count,pool.length));
     db.session={mode:mode==='exam'?'exam':'study',order:pool,answers:{},current:0,startedAt:Date.now(),submitted:false,topic,kind,finishedAt:null};
@@ -174,10 +249,10 @@
       return `<button type="button" class="${cls}" ${!enable?'disabled':''} data-action="${kind==='browse'?'noop':'answer'}" data-choice="${i}" aria-pressed="${selected===i?'true':'false'}"><span class="letter">${letters[i]}</span><span class="option-body">${rich(value)}</span></button>`;
     }).join('')}</div>`;
   }
-  function explanation(q,selected){
+  function explanation(q,selected,context='session'){
     const good=selected===q.key;
-    const label=selected===-1?'Answer revealed':good?'Correct answer':'Answer and explanation';
-    return `<div class="answer-panel ${!good&&selected!==-1?'incorrect':''}"><h3>${label}: ${letters[q.key]} — ${rich(q.options[q.key])}</h3><p>${rich(q.rationale)}</p>
+    const label=selected===null?'Unanswered question':selected===-1?'Answer revealed':good?'Correct answer':'Answer and explanation';
+    return `<div class="answer-panel ${!good&&selected!==-1?'incorrect':''}"><h3>${label}: ${letters[q.key]} — ${rich(q.options[q.key])}</h3>${selected===-1&&context!=='browse'?'<p><strong>Revealed without an attempt — this question earns zero marks in the session.</strong></p>':selected===null?'<p><strong>Unanswered — this question earned zero marks in the session.</strong></p>':''}<p>${rich(q.rationale)}</p>
       <div class="source"><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
     </div>`;
   }
@@ -189,11 +264,11 @@
     const has=Object.prototype.hasOwnProperty.call(s.answers,String(id));
     const selected=has?Number(s.answers[id]):null;
     const reveal=s.mode==='study'&&has;
-    const done=answerCount(s);
+    const done=answerCount(s),revealCount=Object.values(s.answers).filter(v=>v===-1).length;
     const isLast=s.current===s.order.length-1;
     const mark=db.bookmarks.includes(id)?'★ Bookmarked':'☆ Bookmark';
     return `<div class="page-toolbar"><div class="eyebrow">${s.mode==='exam'?'Mock examination':'Practice session'} · ${s.order.length} questions</div><button data-action="pause" class="btn btn-small btn-outline" type="button">Save & exit</button></div>
-      <div class="session-top"><div class="session-meta"><span>QUESTION ${s.current+1} OF ${s.order.length} · ${done} answered</span><span>${s.mode==='exam'?'Exam timer':'Elapsed time'} <strong id="session-clock">${fmtTime(Date.now()-s.startedAt)}</strong></span></div><div class="session-progressbar" role="progressbar" aria-valuenow="${done}" aria-valuemax="${s.order.length}" aria-label="Answered questions"><span style="width:${percent(done,s.order.length)}%"></span></div></div>
+      <div class="session-top"><div class="session-meta"><span>QUESTION ${s.current+1} OF ${s.order.length} · ${done} answered${revealCount?' · '+revealCount+' revealed':''}</span><span>${s.mode==='exam'?'Exam timer':'Elapsed time'} <strong id="session-clock">${fmtTime(Date.now()-s.startedAt)}</strong></span></div><div class="session-progressbar" role="progressbar" aria-valuenow="${done}" aria-valuemax="${s.order.length}" aria-label="Answered questions"><span style="width:${percent(done,s.order.length)}%"></span></div></div>
       <article class="question card">
       <div class="question-head"><span class="question-number">QUESTION ${q.number} · TOPIC ${q.topic} / §${safe(q.section)}</span><span class="tag">${safe(q.kind)}</span></div>
       <p style="color:var(--muted);font-size:12px;margin:0">${safe(topicTitle(q.topic))}</p>
@@ -210,6 +285,7 @@
   function answer(choice){
     const s=db.session;if(!s||s.submitted)return;
     const id=s.order[s.current];
+    if(!validChoice(choice))return;
     if(s.mode==='study'&&Object.prototype.hasOwnProperty.call(s.answers,String(id)))return;
     s.answers[id]=choice;
     if(s.mode==='study')record(id,choice);
@@ -217,31 +293,35 @@
   }
   function finish(){
     const s=db.session;if(!s||s.submitted)return;
-    const count=answerCount(s),missing=s.order.length-count;
-    if(missing && !window.confirm(`Finish now? ${missing} question${missing===1?' is':'s are'} unanswered. Unanswered questions will count as incorrect.`))return;
-    if(s.mode==='exam')for(const id of s.order){if(Number(s.answers[id])>=0 && Object.prototype.hasOwnProperty.call(s.answers,String(id)))record(id,Number(s.answers[id]));}
-    s.submitted=true;s.finishedAt=Date.now();
-    const correct=s.order.filter(id=>s.answers[id]===BY_ID.get(id).key).length;
-    db.history.unshift({date:s.finishedAt,mode:s.mode,total:s.order.length,answered:count,correct,topic:s.topic});
+    const stats=scoreSession(s);
+    const omitted=stats.unanswered+stats.revealed;
+    if(omitted && !window.confirm(`Finish now? ${stats.unanswered} unanswered and ${stats.revealed} answer-revealed question(s) will each score zero. Your score will be out of all ${stats.total} questions.`))return;
+    if(s.mode==='exam')for(const id of s.order){if(validChoice(s.answers[id]))record(id,s.answers[id]);}
+    s.submitted=true;s.finishedAt=Date.now();ui.missedPage=1;
+    db.history.unshift({date:s.finishedAt,mode:s.mode,total:stats.total,answered:stats.answered,correct:stats.correct,topic:s.topic,revealed:stats.revealed,unanswered:stats.unanswered});
     db.history=db.history.slice(0,35);
     persist();setView('results');
   }
   function renderResults(){
-    const s=db.session;if(!s||!s.submitted)return `<div class="empty">Submit a session to see results.</div>`;
-    const good=s.order.filter(id=>s.answers[id]===BY_ID.get(id).key);
+    const s=db.session;if(!s||!s.submitted)return `<div class="empty">No completed session. <button data-action="nav" data-view="practice" class="btn btn-small btn-outline">Start practice</button></div>`;
+    const stats=scoreSession(s),{correct,total,answered,revealed,unanswered}=stats;
     const missed=s.order.filter(id=>s.answers[id]!==BY_ID.get(id).key);
-    const n=good.length,total=s.order.length;
-    return `${pageHeading('Session complete',s.mode==='exam'?'Examination results':'Practice results','Use this feedback to return to your revision notebook and reinforce weaker syllabus sections.')}
-      <div class="score-hero"><div><div class="eyebrow">Final score</div><div class="score">${percent(n,total)}% <small>${n} / ${total} correct</small></div><p style="margin:12px 0 0;color:var(--muted)">${answerCount(s)} answered · ${fmtTime((s.finishedAt||Date.now())-s.startedAt)} elapsed</p></div>
+    const limit=25,pages=Math.max(1,Math.ceil(missed.length/limit));
+    ui.missedPage=Math.min(Math.max(ui.missedPage,1),pages);
+    const offset=(ui.missedPage-1)*limit;
+    return `${pageHeading('Session complete',s.mode==='exam'?'Examination results':'Practice results','Scoring is based on the revised examination-style answer key; every question counts once. Unanswered and revealed-only questions receive zero marks.')}
+      <div class="score-hero"><div><div class="eyebrow">Final score</div><div class="score">${percent(correct,total)}% <small>${correct} / ${total} correct</small></div>
+        <p style="margin:12px 0 0;color:var(--muted)">${answered} answered (${stats.incorrect} incorrect) · ${revealed} revealed · ${unanswered} unanswered · ${fmtTime((s.finishedAt||Date.now())-s.startedAt)} elapsed</p></div>
       <div style="display:flex;gap:9px;flex-wrap:wrap"><button data-action="nav" data-view="practice" class="btn btn-primary" type="button">New practice set</button><button data-action="nav" data-view="progress" class="btn btn-outline" type="button">Review progress</button></div></div>
-      <section class="card" style="margin-bottom:21px"><h3>Review the questions you missed (${missed.length})</h3>
-        ${missed.length?`<div class="review-list">${missed.map(id=>{const q=BY_ID.get(id);return `<div class="review-item"><span class="question-number">Q${id}</span><p>${rich(q.stem)}</p><button data-action="review" data-id="${id}" type="button">View explanation</button></div>`}).join('')}</div>`:'<p style="color:var(--green)">Excellent — no incorrect responses in this session.</p>'}</section>
+      <section class="card" style="margin-bottom:21px"><h3>Review incorrect, revealed and unanswered questions (${missed.length})</h3>
+        ${missed.length?`<div class="review-list">${missed.slice(offset,offset+limit).map(id=>{const q=BY_ID.get(id);const status=s.answers[id]===-1?'Revealed only':validChoice(s.answers[id])?'Incorrect answer':'Unanswered';return `<div class="review-item"><span class="question-number">Q${id} · ${status}</span><p>${rich(q.stem)}</p><button data-action="review" data-id="${id}" type="button">View explanation</button></div>`}).join('')}</div>
+          <div class="pagination"><button class="btn btn-small btn-outline" data-action="missed-prev" type="button" ${ui.missedPage===1?'disabled':''}>← Previous</button><span>Page ${ui.missedPage} / ${pages}</span><button class="btn btn-small btn-outline" data-action="missed-next" type="button" ${ui.missedPage===pages?'disabled':''}>Next →</button></div>`:'<p style="color:var(--green)">Excellent — no incorrect or unanswered responses in this session.</p>'}</section>
       <section class="card"><h3>Review any question from this session</h3><div class="jump"><label for="review-jump">Session question</label><input id="review-jump" type="number" inputmode="numeric" min="1" max="${s.order.length}" placeholder="1"/><button data-action="review-jump" class="btn btn-small btn-outline" type="button">Review</button></div></section>`;
   }
   function renderReview(){
     const q=BY_ID.get(Number(ui.reviewId)),s=db.session;
-    if(!q||!s)return '<div class="empty">Question not found.</div>';
-    const value=Object.prototype.hasOwnProperty.call(s.answers,String(q.number))?Number(s.answers[q.number]):-1;
+    if(!q||!s||!s.submitted||!s.order.includes(q.number))return '<div class="empty">Review question unavailable. <button data-action="nav" data-view="results" class="btn btn-small btn-outline">Back to results</button></div>';
+    const value=Object.prototype.hasOwnProperty.call(s.answers,String(q.number))?s.answers[q.number]:null;
     return `<button data-action="nav" data-view="results" class="btn btn-small btn-outline" type="button">← Back to results</button>
       <article class="question card"><div class="question-head"><span class="question-number">REVIEW · QUESTION ${q.number}</span><span class="tag">Topic ${q.topic} · §${safe(q.section)}</span></div>
       <div class="q-stem">${rich(q.stem)}</div>${optionButtons(q,value,true,false,'browse')}${explanation(q,value)}</article>`;
@@ -279,21 +359,23 @@
   }
   function renderBrowseDetail(){
     const q=BY_ID.get(Number(ui.browseDetail));
-    if(!q)return '<div class="empty">Question not found.</div>';
+    if(!q)return '<div class="empty">Question not found. <button data-action="nav" data-view="browse" class="btn btn-small btn-outline">Back to all questions</button></div>';
     return `<button data-action="nav" data-view="browse" class="btn btn-small btn-outline" type="button">← Back to question list</button>
       <article class="question card"><div class="question-head"><span class="question-number">QUESTION ${q.number} · TOPIC ${q.topic} / §${safe(q.section)}</span><span class="tag">${safe(q.kind)}</span></div>
       <p style="color:var(--muted);font-size:12px">${safe(topicTitle(q.topic))}</p><div class="q-stem">${rich(q.stem)}</div>
       ${optionButtons(q,-1,ui.browseReveal,false,'browse')}
-      ${ui.browseReveal?explanation(q,-1):''}
+      ${ui.browseReveal?explanation(q,-1,'browse'):''}
       <div class="question-actions"><button data-action="bookmark" data-id="${q.number}" type="button" class="btn btn-small btn-outline">${db.bookmarks.includes(q.number)?'★ Bookmarked':'☆ Bookmark'}</button>${!ui.browseReveal?'<button data-action="browse-reveal" type="button" class="btn btn-teal">Reveal answer and justification</button>':''}</div></article>`;
   }
   function renderProgress(){
     const seen=Object.keys(db.progress).length;
     const correct=Object.values(db.progress).filter(x=>x.correct).length;
     return `${pageHeading('Personal revision record','Your progress','Your answers, bookmarked questions and recent sessions are saved in your browser on this device. They are not transmitted to a server.')}
-      <div class="progress-grid"><div class="stat"><b>${seen} / 1,000</b><small>UNIQUE QUESTIONS TRIED</small></div><div class="stat"><b>${seen?percent(correct,seen)+'%':'—'}</b><small>LATEST ANSWER ACCURACY</small></div><div class="stat"><b>${db.bookmarks.length}</b><small>BOOKMARKED QUESTIONS</small></div></div>
+      <div class="progress-grid"><div class="stat"><b>${seen} / ${Q.length}</b><small>UNIQUE QUESTIONS ANSWERED · ${percent(seen,Q.length)}% COMPLETE</small></div><div class="stat"><b>${seen?percent(correct,seen)+'%':'—'}</b><small>ACCURACY OF MOST RECENT ANSWER PER QUESTION</small></div><div class="stat"><b>${db.bookmarks.length}</b><small>BOOKMARKED QUESTIONS</small></div></div>
+      ${db.session&&!db.session.submitted?`<div class="callout" style="margin-bottom:19px"><strong>Unfinished ${db.session.mode==='exam'?'mock exam':'practice set'}:</strong> ${answerCount(db.session)} of ${db.session.order.length} answered. <button data-action="continue" class="btn btn-small btn-primary" type="button">Resume session →</button></div>`:''}
       <div class="card" style="margin-bottom:20px"><h3>Competency coverage</h3><div style="overflow-x:auto"><table class="smalltable"><thead><tr><th>Learning topic</th><th>Attempted</th><th>Correct</th><th>Progress</th></tr></thead><tbody>${TOPICS.map(t=>{const n=seenCount(t.id),total=topicCount(t.id),a=accuracy(t.id);return `<tr><td><strong>${t.id}.</strong> ${safe(t.title)}</td><td>${n}/${total}</td><td class="accuracy">${a===null?'—':a+'%'}</td><td style="min-width:100px"><div class="mini-progress" aria-label="${percent(n,total)} percent attempted"><span style="width:${percent(n,total)}%"></span></div></td></tr>`}).join('')}</tbody></table></div></div>
       <div class="card" style="margin-bottom:20px"><h3>Recent sessions</h3>${db.history.length?db.history.slice(0,10).map(h=>`<div class="history"><div><strong>${h.mode==='exam'?'Mock examination':'Practice'}</strong> · ${h.topic==='all'?'All topics':'Topic '+h.topic}<br/><span>${fmtDate(h.date)} · ${h.answered}/${h.total} answered</span></div><div class="accuracy">${h.correct}/${h.total} · ${percent(h.correct,h.total)}%</div></div>`).join(''):'<p style="color:var(--muted);font-size:13px">No finished sessions yet. Start a practice set to track your results.</p>'}</div>
+      ${legacyAvailable?`<div class="notice" role="note" style="margin-bottom:18px"><strong>Previous question-bank edition detected.</strong> Your earlier progress is preserved separately and is not counted toward this revised bank (its answer choices have changed). <button data-action="legacy-export" class="btn btn-small btn-outline" type="button">Export original progress</button></div>`:''}
       <div class="card"><h3>Manage your revision history</h3><p style="font-size:13px;color:var(--muted)">Export your local data before changing devices. Progress does not automatically sync between an iPhone, iPad and computer.</p><div style="display:flex;flex-wrap:wrap;gap:10px"><button data-action="export" type="button" class="btn btn-outline">↓ Export progress JSON</button><label for="import-progress" class="btn btn-outline" style="cursor:pointer">↑ Import progress JSON</label><input id="import-progress" type="file" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none" aria-label="Import progress file"/>${db.bookmarks.length?'<button data-action="browse-bookmarked" type="button" class="btn btn-outline">★ Review bookmarks</button>':''}<button data-action="reset" type="button" class="btn btn-danger">Clear saved progress</button></div></div>`;
   }
   function renderNotebook(){
@@ -324,7 +406,7 @@
   }
   function renderAbout(){
     return `${pageHeading('About this edition','About, downloads & installation','A complete standalone web version of the Dental Sleep Medicine (IFDSM) examination revision question bank.')}
-      <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>115 integrated clinical vignettes and 436 clinical-context applications, plus targeted knowledge checks and all/none styles.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving and offline access after the first successful online visit.</li></ul></section>
+      <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>160 clinician-oriented decision cases, 424 applied clinical SBAs, 369 interpretation questions and 47 focused knowledge questions; all with one best option.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving, resume after closing the browser, score breakdown and offline access after the first successful online visit.</li></ul></section>
       <section class="card"><h3>Reference PDF books</h3><p>The final 224-page notebook supplied for this website is available with its original cover, tables and illustrations. Use the dedicated notebook page for topic-level page references.</p>
       <button data-action="nav" data-view="notebook" type="button" class="btn btn-small btn-outline">Browse notebook chapters →</button><p></p>
       <a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener">↗ Dental Sleep Medicine IFDSM (Final) — Complete 224-page PDF</a><p></p>
@@ -353,7 +435,7 @@
     }
   }
   function downloadProgress(){
-    const data={type:'IFDSM revision progress',version:1,exported_at:new Date().toISOString(),bookmarks:db.bookmarks,progress:db.progress,history:db.history};
+    const data={type:'IFDSM revision progress',version:3,bank:'ifdsm-examstyle-v2',exported_at:new Date().toISOString(),bookmarks:db.bookmarks,progress:db.progress,history:db.history,session:db.session};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download='IFDSM_Revision_Progress_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
@@ -363,22 +445,29 @@
     event.preventDefault();
     if(a==='nav'){setView(btn.dataset.view);return;}
     if(a==='theme'){db.theme=db.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=db.theme;persist();return;}
-    if(a==='topic-quick'){ui.setupTopic=btn.dataset.id;ui.setupKind='all';ui.setupCount='20';setView('practice');return;}
+    if(a==='topic-quick'){ui.setupTopic=btn.dataset.id;ui.setupKind='all';ui.setupCount='20';ui.setupPool='unseen';setView('practice');return;}
     if(a==='start-session'){startSession(btn.dataset.mode);return;}
-    if(a==='continue'){setView(db.session?.submitted?'results':'session');return;}
+    if(a==='continue'){setView(db.session?.submitted?'results':db.session?'session':'practice');return;}
     if(a==='pause'){setView('home');toast('Session saved on this device.');return;}
     if(a==='answer'){answer(Number(btn.dataset.choice));return;}
-    if(a==='reveal'){const s=db.session,id=s?.order[s.current];if(s && !Object.prototype.hasOwnProperty.call(s.answers,String(id))){s.answers[id]=-1;persist();render();}return;}
+    if(a==='reveal'){const s=db.session,id=s?.order[s.current];if(s && s.mode==='study' && !Object.prototype.hasOwnProperty.call(s.answers,String(id))){s.answers[id]=-1;persist();render();}return;}
     if(a==='previous'||a==='next'){const s=db.session;if(s){s.current=Math.max(0,Math.min(s.order.length-1,s.current+(a==='next'?1:-1)));persist();render();window.scrollTo({top:0,behavior:'instant'});}return;}
     if(a==='jump'){const s=db.session;let target=Number(document.getElementById('jump-input')?.value||0);if(s&&target>=1&&target<=s.order.length){s.current=target-1;persist();render();window.scrollTo({top:0,behavior:'instant'});}else toast('Enter a valid session question number.');return;}
     if(a==='finish'){finish();return;}
     if(a==='review'){ui.reviewId=Number(btn.dataset.id);setView('review');return;}
     if(a==='review-jump'){const s=db.session,v=Number(document.getElementById('review-jump')?.value||0);if(s&&v>=1&&v<=s.order.length){ui.reviewId=s.order[v-1];setView('review');}else toast('Enter a valid session question number.');return;}
     if(a==='browse-prev'||a==='browse-next'){ui.browsePage+=a==='browse-next'?1:-1;renderBrowseResults();window.scrollTo({top:0,behavior:'instant'});return;}
+    if(a==='missed-prev'||a==='missed-next'){ui.missedPage+=a==='missed-next'?1:-1;render();window.scrollTo({top:0,behavior:'instant'});return;}
     if(a==='browse-open'){ui.browseDetail=Number(btn.dataset.id);ui.browseReveal=false;setView('browse-detail');return;}
     if(a==='browse-reveal'){ui.browseReveal=true;render();return;}
     if(a==='bookmark'){const id=Number(btn.dataset.id);const k=db.bookmarks.indexOf(id);if(k<0)db.bookmarks.push(id);else db.bookmarks.splice(k,1);persist();render();toast(k<0?'Question bookmarked.':'Bookmark removed.');return;}
     if(a==='browse-bookmarked'){ui.browseBookmarks=true;ui.browseTopic='all';ui.browseSection='all';ui.browseKind='all';ui.browsePage=1;setView('browse');return;}
+    if(a==='legacy-export'){
+      try { const content=localStorage.getItem(LEGACY_KEY); if(!content){toast('No earlier progress was found.');return;}
+        const blob=new Blob([content],{type:'application/json'});const url=URL.createObjectURL(blob);
+        const anchor=document.createElement('a');anchor.href=url;anchor.download='IFDSM_Previous_Edition_Progress.json';document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      } catch(e){toast('Could not export previous progress.');}return;
+    }
     if(a==='export'){downloadProgress();return;}
     if(a==='reset'&&window.confirm('Delete all local answers, bookmarks and exam history from this browser? This cannot be undone.')){db.progress={};db.bookmarks=[];db.history=[];db.session=null;persist();render();toast('Local progress cleared.');return;}
   });
@@ -391,21 +480,26 @@
       const file=el.files?.[0];if(!file)return;
       file.text().then(content=>{
         let parsed;try{parsed=JSON.parse(content);}catch(e){toast('This is not a valid JSON file.');return;}
-        if(parsed.type!=='IFDSM revision progress'||!parsed.progress||!Array.isArray(parsed.bookmarks)||!Array.isArray(parsed.history)){
-          toast('This is not an IFDSM revision progress export.');return;
+        if(parsed.type!=='IFDSM revision progress'||parsed.bank!=='ifdsm-examstyle-v2'||parsed.version!==3||!parsed.progress||!Array.isArray(parsed.bookmarks)||!Array.isArray(parsed.history)){
+          toast('This file belongs to a different question-bank edition or is invalid. Import a backup from this Exam-Style edition.');return;
         }
         if(!window.confirm('Replace the local question progress, bookmarks and history on this device with the imported file?'))return;
         const imported={};
         for(const [id,value] of Object.entries(parsed.progress)){
           const q=BY_ID.get(Number(id));if(!q||!value||typeof value!=='object')continue;
-          const a=Number(value.answer);
-          if(!Number.isInteger(a)||a<0||a>4)continue;
+          const a=value.answer;
+          if(!validChoice(a))continue;
           imported[q.number]={answer:a,correct:a===q.key,tries:Math.max(1,Math.min(10000,Number(value.tries)||1)),updated:Number(value.updated)||Date.now()};
         }
         db.progress=imported;
         db.bookmarks=[...new Set(parsed.bookmarks.map(Number).filter(n=>BY_ID.has(n)))];
-        db.history=parsed.history.filter(h=>h&&['study','exam'].includes(h.mode)).slice(0,35);
-        db.session=null;persist();render();toast('Revision progress imported successfully.');
+        db.history=parsed.history.filter(h=>h && ['study','exam'].includes(h.mode) &&
+          Number.isInteger(h.total) && h.total>0 && h.total<=Q.length &&
+          Number.isInteger(h.correct) && h.correct>=0 && h.correct<=h.total &&
+          Number.isInteger(h.answered) && h.answered>=h.correct && h.answered<=h.total &&
+          (h.topic==='all'||TOPICS.some(t=>String(t.id)===String(h.topic))) && Number.isFinite(h.date)).slice(0,35);
+        db.session=cleanSession(parsed.session);
+        persist();render();toast('Revision progress imported successfully.');
       }).catch(()=>toast('Could not read the selected file.'));
       return;
     }
@@ -416,6 +510,7 @@
     if(el.id==='setup-topic'){ui.setupTopic=el.value;}
     if(el.id==='setup-kind'){ui.setupKind=el.value;}
     if(el.id==='setup-count'){ui.setupCount=el.value;}
+    if(el.id==='setup-pool'){if(ui.view==='exam')ui.examPool=el.value;else ui.setupPool=el.value;}
   });
   document.addEventListener('keydown',event=>{
     if(event.key==='Enter'&&event.target.id==='jump-input'){event.preventDefault();document.querySelector('[data-action="jump"]')?.click();}
@@ -425,10 +520,14 @@
     if(event.key==='ArrowLeft'){document.querySelector('[data-action="previous"]')?.click();}
     if(/^[1-5]$/.test(event.key)){const el=document.querySelector(`[data-action="answer"][data-choice="${Number(event.key)-1}"]`);if(el&&!el.disabled)el.click();}
   });
-  window.addEventListener('hashchange',()=>{
-    const view=location.hash.replace('#','');
-    if(VIEWS.has(view)&&view!==ui.view){ui.view=view;render();}
-  });
+  function followUrl(){
+    const view=routeFromHash();
+    if(view!==ui.view || view==='review' || view==='browse-detail'){
+      ui.view=view;render();
+    }
+  }
+  window.addEventListener('hashchange',followUrl);
+  window.addEventListener('popstate',followUrl);
   setInterval(()=>{const el=document.getElementById('session-clock');if(el&&db.session&&!db.session.submitted)el.textContent=fmtTime(Date.now()-db.session.startedAt);},1000);
   render();
   if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
