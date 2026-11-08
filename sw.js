@@ -1,6 +1,6 @@
 /* Offline-first IFDSM core files. Optional PDFs are cached on successful online viewing. */
-const VERSION='ifdsm-1000-v5-answer-formats-20261108';
-const APP_FILES=['./','./index.html','./assets/styles.css','./assets/app.js','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/notebook-cover.webp','./data/questions.js','./manifest.webmanifest'];
+const VERSION='ifdsm-1000-v6-keypoints-20261109';
+const APP_FILES=['./','./index.html','./assets/styles.css','./assets/app.js','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png','./assets/notebook-cover.webp','./data/questions.js','./data/keypoints.js','./manifest.webmanifest'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(APP_FILES)).then(()=>self.skipWaiting()));
 });

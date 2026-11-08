@@ -1,6 +1,6 @@
 # IFDSM SBA Question Bank - Answer-Format Revised Edition
 
-This GitHub Pages folder replaces the earlier IFDSM exam-style website. It retains the 224-page integrated revision notebook and the author-edition cover.
+This GitHub Pages folder replaces the earlier IFDSM exam-style website. It includes the updated 243-page integrated revision notebook (retaining the original 224-page source content and author cover).
 
 ## This correction
 
@@ -26,3 +26,12 @@ Since question numbers and correct option indices are unchanged, the existing sa
 Run `node qa/check-webapp.js` for deterministic scoring, navigation and persistence checks. `qa/answer_format_edits.csv` records each changed option.
 
 This update improves **the format of answer options**, not the independently established clinical validity or true exam equivalence of every question. Some earlier recall/interpretation items still have comparatively simple or distant distractors, and the original learning-outcome assignments beyond the specifically corrected example have not all been independently medically peer-reviewed. No endorsement by IFDSM is claimed.
+
+
+## November 2026 clinical keypoint update (Volume I)
+
+The site now includes **78 revised learning-outcome keypoints**, **30 short integrated clinical scenarios** and examination traps. Open **Notebook → Study keypoints in HTML** to read these offline after the initial visit. Correct and incorrect SBA answers now link back to the relevant topic.
+
+The full 243-page PDF is at `resources/IFDSM_Integrated_Revision_Notebook.pdf` and includes the existing 224-page notebook unchanged except for the updated front matter, inserted keypoint pages and refreshed pagination/footer. Table of contents: page 3. The 1,000 question texts, original correct-answer keys, local-storage identifier, exam and practice scoring code have not been changed. **Do not clear your browser data** when replacing the repository files.
+
+The source-derived 224-page text has not been revised line-by-line for all guideline changes. The added keypoints highlight selected guideline-sensitive issues; consult original references and a licensed medical provider for clinical decisions. See `QA_KEYPOINTS.md`.

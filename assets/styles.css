@@ -236,3 +236,36 @@ h3{font-size:17px;line-height:1.3}
 @media(max-width:770px){.notebook-topic-list{grid-template-columns:1fr}.notebook-extra-grid{grid-template-columns:1fr 1fr}.notebook-promo{margin:0 0 37px}}
 @media(max-width:490px){.notebook-promo{gap:14px;padding:15px;align-items:flex-start}.notebook-promo img{width:66px;flex-basis:66px}.notebook-promo h2{font-size:17px}.notebook-promo-actions .btn{flex:1;justify-content:center;text-align:center}
 .notebook-overview{flex-wrap:wrap;gap:16px}.notebook-overview img{width:115px;max-width:38%}.notebook-overview-text{flex:1 1 180px}.notebook-overview h2{font-size:22px}.notebook-overview .notebook-promo-actions{flex-direction:column}.notebook-topic{padding:14px;gap:10px}.notebook-extra-grid{grid-template-columns:1fr}}
+
+/* November 2026 clinical keypoint update. No changes to test/scoring controls. */
+.keypoints-toolbar{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0 22px}
+.keypoints-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.keypoint-tab{display:grid;place-items:center;height:36px;min-width:36px;border-radius:10px;border:1px solid var(--line);text-decoration:none;background:var(--surface);font-weight:800;font-size:12px;color:var(--ink)}
+.keypoint-tab:hover,.keypoint-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.keypoints-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.keypoints-heading{margin:16px 0 24px}
+.keypoints-heading h2{margin:10px 0}
+.keypoints-heading p{color:var(--ink-soft);max-width:800px;line-height:1.7}
+.keypoint-section{padding-top:25px}
+.keypoint-section h3{font-size:18px;margin-bottom:13px}
+.quiet{color:var(--muted);font-weight:450;font-size:12px;padding-left:8px}
+.keypoint-line{display:grid;grid-template-columns:62px 1fr;gap:7px;border-top:1px solid var(--line);padding:16px 0}
+.keypoint-line:first-of-type{border-top:none}
+.keypoint-code{font-weight:800;font-size:12px;color:var(--teal-dark)}
+.keypoint-line strong{font-size:13px}
+.keypoint-line p{font-size:13px;color:var(--ink-soft);line-height:1.75;margin:5px 0 0}
+.keypoint-case-section{margin:30px 0}
+.keypoint-case-section h3{font:normal 28px var(--serif)}
+.keypoint-cases{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.keypoint-case{border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:18px}
+.keypoint-case h4{font-size:14px;line-height:1.5;margin:13px 0}
+.keypoint-case p{font-size:12.5px;line-height:1.7;color:var(--ink-soft);margin-bottom:9px}
+.keypoint-traps{margin:22px 0}
+.keypoint-traps p{font-size:13px;line-height:1.75;color:var(--ink-soft)}
+.keypoint-cue{border-left:3px solid var(--teal);padding:16px;background:var(--surface-soft);border-radius:0 10px 10px 0;font-size:13px;line-height:1.7}
+.keypoint-practice{margin:20px 0}
+.keypoint-practice-links{display:flex;gap:9px;flex-wrap:wrap}
+.keypoint-evidence{margin-top:20px}
+.keypoint-evidence p,.keypoint-evidence li{font-size:12.5px;line-height:1.7;color:var(--ink-soft)}
+.keypoints-inline-link{display:inline-block;margin-bottom:7px;font-weight:800;color:var(--teal-dark);text-decoration:underline;text-underline-offset:3px}
+@media(max-width:750px){.keypoint-cases{grid-template-columns:1fr}.keypoints-toolbar{align-items:flex-start}.keypoint-line{grid-template-columns:47px 1fr}.keypoint-case{padding:16px}}

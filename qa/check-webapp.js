@@ -2,6 +2,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const base=require('path').resolve(__dirname,'..')+'/';
 const data=fs.readFileSync(base+'data/questions.js','utf8');
+const keydata=fs.readFileSync(base+'data/keypoints.js','utf8');
 const app=fs.readFileSync(base+'assets/app.js','utf8');
 let results=[];
 function test(label, f){try{f();results.push(['PASS',label]);}catch(e){results.push(['FAIL',label, e.stack||e.message]);}}
@@ -26,6 +27,7 @@ function newApp(saved={},hash='#home'){
    setTimeout(){return 0;},clearTimeout(){},setInterval(){},console,Date,Math,Number,JSON,URL,URLSearchParams,
    Blob,Array,Object,Map,Set,String,RegExp};
  vm.runInNewContext(data,context,{filename:'questions.js'});
+ vm.runInNewContext(keydata,context,{filename:'keypoints.js'});
  vm.runInNewContext(app,context,{filename:'app.js'});
  function click(a,dataset={}){if(!listeners.click)throw Error('No click handler');
    listeners.click({target:{closest(){return {dataset:{action:a,...dataset},disabled:false};}},preventDefault(){}});
@@ -188,15 +190,55 @@ test('review distinguishes genuinely unanswered question from reveal-only',()=>{
 });
 test('local core PDF links and icons all exist',()=>{
  for(const file of ['resources/IFDSM_Integrated_Revision_Notebook.pdf','resources/IFDSM_Question_Bank_Author_Edition.pdf',
-   'assets/notebook-cover.webp','assets/icon-192.png','assets/icon-512.png','assets/styles.css','data/questions.js','sw.js','manifest.webmanifest']){
+   'assets/notebook-cover.webp','assets/icon-192.png','assets/icon-512.png','assets/styles.css','data/questions.js','data/keypoints.js','sw.js','manifest.webmanifest']){
   assert(fs.statSync(base+file).size>100,file);
  }
- const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./assets/app.js'));
+ const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./data/keypoints.js')&&html.includes('./assets/app.js'));
 });
 test('offline cache version updated and PDFs do not return disguised HTML when offline',()=>{
- const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('v5-answer-formats-20261108'));
+ const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('v6-keypoints-20261109'));
+ assert(sw.includes('./data/keypoints.js'));
  assert(sw.includes("status:503")&&sw.includes("req.mode==='navigate'"));
 });
+
+test('all 78 keypoint sections are mapped exactly once to the syllabus',()=>{
+ const K=a.ctx.window.IFDSM_KEYPOINTS;
+ assert.equal(K.length,10);
+ assert.equal(K.reduce((s,k)=>s+k.points.length,0),78);
+ assert.equal(K.reduce((s,k)=>s+k.cases.length,0),30);
+ for(const k of K){
+   const exp=TOPICS.find(t=>t.id===k.id).sections.map(s=>s.id);
+   assert.deepStrictEqual(Array.from(k.points.map(p=>p.section)),Array.from(exp));
+   assert(k.points.every(p=>p.text.length>45),`Topic ${k.id}`);
+   assert(k.practice.every(id=>Q.some(q=>q.number===id&&q.topic===k.id)));
+ }
+});
+test('HTML keypoints accessible from notebook, question feedback and direct URLs',()=>{
+ const b=a.load('#notebook');assert.match(b.root.innerHTML,/78 revised learning-outcome takeaways/);
+ assert.match(b.root.innerHTML,/data-view="keypoints"/);
+ const k=b.load('#keypoints?topic=8');
+ assert.match(k.root.innerHTML,/Paediatric sleep-disordered breathing/);
+ assert.match(k.root.innerHTML,/CASE 03/);
+ assert.match(k.root.innerHTML,/Start Topic 8 practice/);
+ const v=k.load('#browse-detail?question=1');v.click('browse-reveal');
+ assert.match(v.root.innerHTML,/Review clinical keypoints for Topic 1/);
+});
+test('all ten updated keypoint topics have direct links without dead ends',()=>{
+ for(let i=1;i<=10;i++){
+   const v=a.load('#keypoints?topic='+i);
+   assert.match(v.root.innerHTML,new RegExp('TOPIC '+String(i).padStart(2,'0')));
+   assert.match(v.root.innerHTML,/Detailed source chapter/);
+   assert.match(v.root.innerHTML,/Clinical SBA decisions/);
+   assert.match(v.root.innerHTML,/Start Topic/);
+ }
+});
+test('reading updated keypoints never changes existing answer progress',()=>{
+ const state=a.state();const copy=JSON.stringify(state);
+ const b=a.load('#keypoints?topic=10');
+ assert.match(b.root.innerHTML,/informed consent/i);
+ assert.equal(JSON.stringify(b.state()),copy);
+});
+
 console.log('TEST RESULTS');console.log(results.map(row=>row[0]+' '+row[1]+(row[2]?'\n'+row[2]:'')).join('\n'));
 const pass=results.filter(x=>x[0]==='PASS').length, fail=results.length-pass;
 console.log(`SUMMARY: ${pass} passed, ${fail} failed`);
