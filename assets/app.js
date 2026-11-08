@@ -6,7 +6,7 @@
   const KEYPOINTS = Array.isArray(window.IFDSM_KEYPOINTS) ? window.IFDSM_KEYPOINTS : [];
   const BY_ID = new Map(Q.map(x => [Number(x.number), x]));
   const NOTEBOOK_PDF = './resources/IFDSM_Integrated_Revision_Notebook.pdf';
-  const NOTEBOOK_MAP = [{"id":1,"key":[9,10],"quick":[11,18],"detail":[19,37]},{"id":2,"key":[38,39],"quick":[40,47],"detail":[48,64]},{"id":3,"key":[65,66],"quick":[67,74],"detail":[75,91]},{"id":4,"key":[92,93],"quick":[94,99],"detail":[100,113]},{"id":5,"key":[114,115],"quick":[116,124],"detail":[125,141]},{"id":6,"key":[142,143],"quick":[144,147],"detail":[148,157]},{"id":7,"key":[158,158],"quick":[159,161],"detail":[162,168]},{"id":8,"key":[169,170],"quick":[171,177],"detail":[178,197]},{"id":9,"key":[198,199],"quick":[200,204],"detail":[205,212]},{"id":10,"key":[213,214],"quick":[215,221],"detail":[222,234]}];
+  const NOTEBOOK_MAP = [{"id":1,"key":[7,8],"quick":[7,8],"detail":[9,27]},{"id":2,"key":[28,29],"quick":[28,29],"detail":[30,46]},{"id":3,"key":[47,48],"quick":[47,48],"detail":[49,65]},{"id":4,"key":[66,67],"quick":[66,67],"detail":[68,81]},{"id":5,"key":[82,83],"quick":[82,83],"detail":[84,100]},{"id":6,"key":[101,102],"quick":[101,102],"detail":[103,112]},{"id":7,"key":[113,114],"quick":[113,114],"detail":[115,121]},{"id":8,"key":[122,123],"quick":[122,123],"detail":[124,143]},{"id":9,"key":[144,145],"quick":[144,145],"detail":[146,153]},{"id":10,"key":[154,155],"quick":[154,155],"detail":[156,177]}];
 
   const KINDS = [
     ['all', 'All question types'],
@@ -92,6 +92,11 @@
     if(v==='main-app')return ui.view||'home'; // Accessibility skip-to-content anchor is not a screen route.
     let view=VIEWS.has(v)?v:'home';
     const id=Number(new URLSearchParams(query).get('question'));
+    if(view==='browse'){
+      const sec=new URLSearchParams(query).get('section');
+      const validSection=TOPICS.some(t=>t.sections.some(s=>s.id===sec));
+      if(validSection){ui.browseTopic=sec.split('.')[0];ui.browseSection=sec;ui.browsePage=1;}
+    }
     if(view==='browse-detail'){
       if(BY_ID.has(id))ui.browseDetail=id;
       else view='browse';
@@ -171,8 +176,8 @@
       </section>
       <section class="notebook-promo" aria-label="Companion revision notebook">
         <img src="./assets/notebook-cover.webp" width="90" height="128" loading="lazy" alt="Cover of Notes in Dental Sleep Medicine — integrated final edition" />
-        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>The updated 243-page final notebook is included in this website. Open the original PDF, or use the topic-by-topic page guide.</p>
-          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="#keypoints?topic=1" class="btn btn-outline">Clinical keypoints →</a><a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener" class="btn btn-outline">Open full PDF ↗</a></div>
+        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I now contains 177 carefully consolidated pages with ten teaching chapters and no duplicated condensed layer. All 78 outcomes map to the 1,000 SBA questions.</p>
+          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./notes.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener" class="btn btn-outline">Open full PDF ↗</a></div>
         </div>
       </section>
       <section><div class="section-head"><div><div class="eyebrow">Complete syllabus coverage</div><h2>Explore the ten topics</h2></div><button class="btn btn-small btn-outline" data-action="nav" data-view="browse" type="button">Browse all questions</button></div>
@@ -243,7 +248,7 @@
     const good=selected===q.key;
     const label=selected===null?'Unanswered question':selected===-1?'Answer revealed':good?'Correct answer':'Answer and explanation';
     return `<div class="answer-panel ${!good&&selected!==-1?'incorrect':''}"><h3>${label}: ${letters[q.key]} — ${rich(q.options[q.key])}</h3>${selected===-1&&context!=='browse'?'<p><strong>Revealed without an attempt — this question earns zero marks in the session.</strong></p>':selected===null?'<p><strong>Unanswered — this question earned zero marks in the session.</strong></p>':''}<p>${rich(q.rationale)}</p>
-      <div class="source"><a href="#keypoints?topic=${q.topic}" class="keypoints-inline-link">↗ Review clinical keypoints for Topic ${q.topic}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
+      <div class="source"><a href="./notes.html#section-${encodeURIComponent(q.section)}" class="keypoints-inline-link">↗ Volume I §${safe(q.section)} — ${safe(sectionTitle(q.section))}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
     </div>`;
   }
   function renderSession(){
@@ -355,7 +360,7 @@
       <p style="color:var(--muted);font-size:12px">${safe(topicTitle(q.topic))}</p><div class="q-stem">${rich(q.stem)}</div>
       ${optionButtons(q,-1,ui.browseReveal,false,'browse')}
       ${ui.browseReveal?explanation(q,-1,'browse'):''}
-      <div class="question-actions"><button data-action="bookmark" data-id="${q.number}" type="button" class="btn btn-small btn-outline">${db.bookmarks.includes(q.number)?'★ Bookmarked':'☆ Bookmark'}</button>${!ui.browseReveal?'<button data-action="browse-reveal" type="button" class="btn btn-teal">Reveal answer and justification</button>':''}</div></article>`;
+      <div class="question-actions"><button data-action="practice-one" data-id="${q.number}" type="button" class="btn btn-small btn-primary">Answer this SBA · scored</button><button data-action="bookmark" data-id="${q.number}" type="button" class="btn btn-small btn-outline">${db.bookmarks.includes(q.number)?'★ Bookmarked':'☆ Bookmark'}</button>${!ui.browseReveal?'<button data-action="browse-reveal" type="button" class="btn btn-teal">Reveal answer and justification</button>':''}</div></article>`;
   }
   function renderProgress(){
     const seen=Object.keys(db.progress).length;
@@ -375,6 +380,7 @@
     if(!data)return '<div class="empty">Keypoint data unavailable. Re-upload the entire website folder, including data/keypoints.js.</div>';
     const m=NOTEBOOK_MAP.find(x=>x.id===data.id),pdfAt=(page)=>`${NOTEBOOK_PDF}#page=${page}`;
     return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The revision layer for 78 syllabus learning outcomes: decisions first, details second. Select a competency; links below can take you to the full illustrated PDF or matching SBA items.')}
+      <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="./notes.html#chapter-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
       <section class="keypoints-toolbar card"><div><div class="eyebrow">Select your competency</div><div class="keypoints-tabs">${KEYPOINTS.map(t=>`<a class="keypoint-tab ${t.id===data.id?'active':''}" href="#keypoints?topic=${t.id}" aria-label="Topic ${t.id}">${String(t.id).padStart(2,'0')}</a>`).join('')}</div></div>
       <div class="keypoints-buttons"><a class="btn btn-small btn-outline" href="${pdfAt(m.key[0])}" target="_blank" rel="noopener">Open updated keypoints in PDF ↗</a><a class="btn btn-small btn-outline" href="${pdfAt(m.detail[0])}" target="_blank" rel="noopener">Detailed source chapter ↗</a></div></section>
       <section class="keypoints-heading"><div class="eyebrow">TOPIC ${String(data.id).padStart(2,'0')}</div><h2>${safe(data.title)}</h2><p>${safe(data.lens)}</p></section>
@@ -392,35 +398,35 @@
   function renderNotebook(){
     const pages=(a)=>`${a[0]}–${a[1]}`;
     const pdfAt=(page)=>`${NOTEBOOK_PDF}#page=${page}`;
-    return `${pageHeading('Volume I · Clinical keypoints updated','Notes in Dental Sleep Medicine','Your revised 243-page IFDSM notebook. Each of the ten competencies now begins with clinical SBA keypoints, followed by the original condensed and detailed explanations.')}
+    return `${pageHeading('Volume I · Clinical keypoints updated','Notes in Dental Sleep Medicine','The chaptered Volume I reader maps 78 learning outcomes to all 1,000 exact SBA questions; the original notes and full explanations remain available in the PDF.')}
       <section class="notebook-overview card">
         <img src="./assets/notebook-cover.webp" width="200" height="285" alt="Cover of Notes in Dental Sleep Medicine" />
         <div class="notebook-overview-text"><div class="eyebrow">November 2026 · Clinical SBA keypoint revision</div><h2>Updated integrated revision notebook</h2>
-          <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original 224-page detailed teaching material preserved.</p>
-          <div class="notebook-promo-actions"><a href="${NOTEBOOK_PDF}" target="_blank" rel="noopener" class="btn btn-primary">Open updated PDF ↗</a><button class="btn btn-outline" data-action="nav" data-view="keypoints" type="button">Study keypoints in HTML →</button></div>
-          <p class="notebook-fineprint">The new 243-page notebook includes a clickable topic map on page 3. Download it into Files if your iPhone/iPad PDF viewer does not retain it offline.</p>
+          <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original comprehensive teaching content preserved.</p>
+          <div class="notebook-promo-actions"><a href="./notes.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="${NOTEBOOK_PDF}" target="_blank" rel="noopener" class="btn btn-primary">Open updated PDF ↗</a><a class="btn btn-outline" href="./notes.html#chapter-1">Study chapter 1 in HTML →</a></div>
+          <p class="notebook-fineprint">The new 253-page Volume I notebook includes a clickable chapter contents page and an SBA concordance at each chapter opening. Download it into Files if your iPhone/iPad PDF viewer does not retain it offline.</p>
         </div>
       </section>
       <section class="notebook-guide"><div class="section-head"><div><div class="eyebrow">Choose what to revise</div><h2>Ten competencies, three layers</h2></div></div>
         <div class="notebook-topic-list">${NOTEBOOK_MAP.map(t=>{
           const title=topicTitle(t.id);
           return `<article class="notebook-topic"><div class="notebook-topic-number">${String(t.id).padStart(2,'0')}</div>
-            <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Keypoints: pp. ${pages(t.key)} · Condensed: pp. ${pages(t.quick)} · Detailed: pp. ${pages(t.detail)}</p>
-            <div class="notebook-topic-links"><a href="#keypoints?topic=${t.id}">Read keypoints in HTML →</a><a href="${pdfAt(t.key[0])}" target="_blank" rel="noopener">Keypoints PDF ↗</a><a href="${pdfAt(t.quick[0])}" target="_blank" rel="noopener">Original short notes ↗</a><a href="${pdfAt(t.detail[0])}" target="_blank" rel="noopener">Full explanation ↗</a></div></div></article>`}).join('')}</div>
+            <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Clinical guide: pp. ${pages(t.key)} · Full explanations: pp. ${pages(t.detail)}</p>
+            <div class="notebook-topic-links"><a href="./notes.html#chapter-${t.id}">Read chapter in HTML →</a><a href="${pdfAt(t.key[0])}" target="_blank" rel="noopener">Keypoints PDF ↗</a><a href="${pdfAt(t.quick[0])}" target="_blank" rel="noopener">Original short notes ↗</a><a href="${pdfAt(t.detail[0])}" target="_blank" rel="noopener">Full explanation ↗</a></div></div></article>`}).join('')}</div>
       </section>
       <section class="notebook-extras"><h2>Examination quick links</h2><div class="notebook-extra-grid">
         <a href="${pdfAt(4)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Master number tables</strong><span>Pages 4–8 · Interpret values in clinical context ↗</span></a>
-        <a href="${pdfAt(235)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Original 60-question mock</strong><span>Pages 235–239 · Original self-assessment ↗</span></a>
-        <a href="${pdfAt(240)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Abbreviations & source references</strong><span>Pages 240–243 ↗</span></a>
+        <a href="${pdfAt(245)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Original 60-question mock</strong><span>Pages 235–239 · Original self-assessment ↗</span></a>
+        <a href="${pdfAt(250)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Abbreviations & source references</strong><span>Pages 250–253 ↗</span></a>
       </div></section>
       <div class="notice" role="note">PDF page-jump links depend on the viewer. Some iOS PDF viewers start at page one; use the page numbers above or PDF bookmarks. The HTML keypoint pages work without a PDF viewer after the website is installed offline.</div>`;
   }
   function renderAbout(){
     return `${pageHeading('About this edition','About, downloads & installation','A complete standalone web version of the Dental Sleep Medicine (IFDSM) examination revision question bank.')}
       <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>160 clinician-oriented decision cases, 424 applied clinical SBAs, 369 interpretation questions and 47 focused knowledge questions; all with one best option.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving, resume after closing the browser, score breakdown and offline access after the first successful online visit.</li></ul></section>
-      <section class="card"><h3>Reference PDF books</h3><p>The revised 243-page notebook supplied for this website is available with its original cover, tables and illustrations. Use the dedicated notebook page for topic-level page references.</p>
+      <section class="card"><h3>Reference PDF books</h3><p>The revised 253-page notebook supplied for this website is available with its original cover, tables and illustrations. Use the dedicated notebook page for topic-level page references.</p>
       <button data-action="nav" data-view="notebook" type="button" class="btn btn-small btn-outline">Browse notebook chapters →</button><p></p>
-      <a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener">↗ Dental Sleep Medicine IFDSM — Updated keypoints (243 pages)</a><p></p>
+      <a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener">↗ Dental Sleep Medicine IFDSM — Consolidated Volume I (177 pages)</a><p></p>
       <a href="./resources/IFDSM_Question_Bank_Author_Edition.pdf" target="_blank" rel="noopener">↗ The Question Bank — Author Edition (PDF)</a>
       <p style="margin-top:17px;color:var(--muted)">The website and question data work without a PDF viewer; these files are additional reference material.</p></section>
       <section class="card"><h3>Add the website to your iPhone / iPad</h3><ol style="padding-left:19px;color:var(--ink-soft);font-size:13px;line-height:1.9"><li>Open your published GitHub Pages website in <strong>Safari</strong>.</li><li>Tap <strong>Share</strong> and choose <strong>Add to Home Screen</strong>.</li><li>Open the new IFDSM icon and begin studying.</li><li>Visit online once after updates to ensure the latest questions are available offline.</li></ol></section>
@@ -471,6 +477,10 @@
     if(a==='browse-prev'||a==='browse-next'){ui.browsePage+=a==='browse-next'?1:-1;renderBrowseResults();window.scrollTo({top:0,behavior:'instant'});return;}
     if(a==='missed-prev'||a==='missed-next'){ui.missedPage+=a==='missed-next'?1:-1;render();window.scrollTo({top:0,behavior:'instant'});return;}
     if(a==='browse-open'){ui.browseDetail=Number(btn.dataset.id);ui.browseReveal=false;setView('browse-detail');return;}
+    if(a==='practice-one'){const id=Number(btn.dataset.id),q=BY_ID.get(id);if(!q)return;
+      if(db.session && !db.session.submitted && !window.confirm('Start a single-question practice? Your unfinished session will be replaced.'))return;
+      db.session={mode:'study',order:[id],answers:{},current:0,startedAt:Date.now(),submitted:false,topic:String(q.topic),kind:'all',finishedAt:null};
+      persist();setView('session');return;}
     if(a==='browse-reveal'){ui.browseReveal=true;render();return;}
     if(a==='bookmark'){const id=Number(btn.dataset.id);const k=db.bookmarks.indexOf(id);if(k<0)db.bookmarks.push(id);else db.bookmarks.splice(k,1);persist();render();toast(k<0?'Question bookmarked.':'Bookmark removed.');return;}
     if(a==='browse-bookmarked'){ui.browseBookmarks=true;ui.browseTopic='all';ui.browseSection='all';ui.browseKind='all';ui.browsePage=1;setView('browse');return;}

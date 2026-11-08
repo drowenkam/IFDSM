@@ -196,7 +196,7 @@ test('local core PDF links and icons all exist',()=>{
  const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./data/keypoints.js')&&html.includes('./assets/app.js'));
 });
 test('offline cache version updated and PDFs do not return disguised HTML when offline',()=>{
- const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('v6-keypoints-20261109'));
+ const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-vol1-consolidated-20261109-v8'));
  assert(sw.includes('./data/keypoints.js'));
  assert(sw.includes("status:503")&&sw.includes("req.mode==='navigate'"));
 });
@@ -215,13 +215,13 @@ test('all 78 keypoint sections are mapped exactly once to the syllabus',()=>{
 });
 test('HTML keypoints accessible from notebook, question feedback and direct URLs',()=>{
  const b=a.load('#notebook');assert.match(b.root.innerHTML,/78 revised learning-outcome takeaways/);
- assert.match(b.root.innerHTML,/data-view="keypoints"/);
+ assert.match(b.root.innerHTML,/notes.html#contents/);
  const k=b.load('#keypoints?topic=8');
  assert.match(k.root.innerHTML,/Paediatric sleep-disordered breathing/);
  assert.match(k.root.innerHTML,/CASE 03/);
  assert.match(k.root.innerHTML,/Start Topic 8 practice/);
  const v=k.load('#browse-detail?question=1');v.click('browse-reveal');
- assert.match(v.root.innerHTML,/Review clinical keypoints for Topic 1/);
+ assert.match(v.root.innerHTML,/Volume I §1.6/);assert.match(v.root.innerHTML,/notes.html#section-1.6/);
 });
 test('all ten updated keypoint topics have direct links without dead ends',()=>{
  for(let i=1;i<=10;i++){
@@ -244,3 +244,27 @@ const pass=results.filter(x=>x[0]==='PASS').length, fail=results.length-pass;
 console.log(`SUMMARY: ${pass} passed, ${fail} failed`);
 // The test suite only prints results and does not modify the website.
 process.exitCode=fail?1:0;
+// Additional chapter-reader integration tests (run after the original suite).
+test('Volume I section deep link filters the question browser to that exact syllabus section',()=>{
+ const b=newApp({},'#browse?section=1.3');
+ assert.match(b.root.innerHTML,/Browse all questions/);
+ assert.equal(b.ctx.document.getElementById('browse-section')?.value,undefined); // selected option rendered, DOM mocked
+ assert.match(b.root.innerHTML,/value="1.3" selected/);
+ assert.match(b.browse.innerHTML,/Q5/);
+ assert.doesNotMatch(b.browse.innerHTML,/Topic 8 · §8\.5/);
+});
+test('Volume I direct SBA links can be answered and scored accurately',()=>{
+ const b=newApp({},'#browse-detail?question=71');
+ assert.match(b.root.innerHTML,/Answer this SBA · scored/);
+ b.click('practice-one',{id:'71'});
+ assert.equal(b.loc.hash,'#session');assert.deepStrictEqual(Array.from(b.state().session.order),[71]);
+ const q=Q.find(x=>x.number===71);assert(q);
+ b.click('answer',{choice:String(q.key)});
+ assert.equal(b.state().progress[71].correct,true);
+ assert.match(b.root.innerHTML,/notes.html#section-1\.3/);
+ b.click('finish');
+ assert.match(b.root.innerHTML,/100%[\s\S]*1 \/ 1 correct/);
+ assert.equal(b.state().history[0].correct,1);
+});
+console.log('CHAPTER ADD-ON CHECKS:',results.filter(r=>r[0]==='FAIL').length===0?'PASS':'FAIL');
+if(results.some(x=>x[0]==='FAIL'))process.exitCode=1;

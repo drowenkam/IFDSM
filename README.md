@@ -1,37 +1,38 @@
-# IFDSM SBA Question Bank - Answer-Format Revised Edition
+# IFDSM Dental Sleep Medicine — Consolidated Volume I and 1,000-SBA Website
 
-This GitHub Pages folder replaces the earlier IFDSM exam-style website. It includes the updated 243-page integrated revision notebook (retaining the original 224-page source content and author cover).
+**Prepared and compiled by Dr. Kam O Man, Owen.** Independent educational revision resource; not an official IFDSM publication.
 
-## This correction
+## What changed in Volume I
 
-- All **1,000 questions** remain present in the same numbered order with the same A-E correct-answer positions.
-- **471 question items** (applied clinical and focused-knowledge items) had their option wording edited. The reused source-note fragments were consolidated into short, self-contained statements.
-- The example concerning non-anatomical OSA traits is now a proper single-sentence option; its PALM endotype statistics are explained in the rationale.
-- One mislabelled section reference (question 71) was corrected to section 1.3.
-- Explanations, 160 authored clinical decision cases, 369 concept-interpretation questions and all topic grouping are retained.
-- The website and printable PDF now read from the same revised data.
+The 253-page chaptered compilation has been edited to **177 pages** by removing 65 repeated condensed-topic pages and the two duplicate numeric-summary pages. It is **not** a stack of two notebooks anymore.
 
-## Publish on GitHub Pages
+Volume I now contains:
 
-1. Unzip and upload **all contents** of this folder to the repository root (replace the old files). Keep `index.html`, `assets/`, `data/`, `resources/`, `sw.js` and `manifest.webmanifest` intact.
-2. Commit to the branch serving GitHub Pages. Reload once in Safari **while online** to update the offline cache.
-3. Continue in Practice, Exam, Browse or Notebook. Saving and restoring answers use existing local browser storage.
+1. A revised cover and reader instructions; an interactive ten-chapter contents page.
+2. Exactly one set of master numerical tables (three pages, from the detailed companion).
+3. A clinical revision guide for each of the ten chapters, incorporating **78 concise outcome-specific keypoints**, 30 clinical decisions, examination traps and exact corresponding SBA question numbers.
+4. The complete original **142-page detailed examination companion teaching content**, including diagrams, tables, longer self-tests, original 60-question mock, answer key and references. No detailed source page was removed.
 
-## Progress and scoring
+Each learning section on **notes.html** now has a direct **Read §x.y full explanation** PDF link as well as links to exactly those SBA questions. The PDF contents and bookmarks use the revised page numbers.
 
-Since question numbers and correct option indices are unchanged, the existing same-edition progress record (`ifdsm-sba-examstyle-v2`) remains compatible. Export a backup from Progress before updating, as a precaution. Older pre-exam-style progress remains separate.
+We did not update or overwrite the 1,000 SBA question text, correct answer positions or saved-score key. Progress remains local to the same browser and website address.
 
-## QA and editorial caveat
+## GitHub Pages upload
 
-Run `node qa/check-webapp.js` for deterministic scoring, navigation and persistence checks. `qa/answer_format_edits.csv` records each changed option.
+1. Export existing question progress from the current site first.
+2. Extract the ZIP archive and upload **the folder contents** into the root of your current GitHub Pages repository.
+3. Replace `index.html`, `notes.html`, `data/`, `assets/`, `resources/`, and `sw.js`. Keep `.nojekyll` at root.
+4. Open the site with internet access and refresh twice if an earlier offline app version is cached.
+5. From the website, select **Volume I** → chapter → § learning outcome → **Read full explanation**, or select the related numbered SBA.
 
-This update improves **the format of answer options**, not the independently established clinical validity or true exam equivalence of every question. Some earlier recall/interpretation items still have comparatively simple or distant distractors, and the original learning-outcome assignments beyond the specifically corrected example have not all been independently medically peer-reviewed. No endorsement by IFDSM is claimed.
+## Offline / scoring notes
 
+The HTML and all 1,000 SBA questions are precached for offline use after first online access. The PDF is cached on demand after successful viewing; for reliable offline reading on an iPhone/iPad, save the PDF in Files.
 
-## November 2026 clinical keypoint update (Volume I)
+Scores, marks, answer keys and session storage keys are unchanged. The release changes *only the Volume I structure and website document links*. There is no account-based synchronization between devices.
 
-The site now includes **78 revised learning-outcome keypoints**, **30 short integrated clinical scenarios** and examination traps. Open **Notebook → Study keypoints in HTML** to read these offline after the initial visit. Correct and incorrect SBA answers now link back to the relevant topic.
+## Scope and caution
 
-The full 243-page PDF is at `resources/IFDSM_Integrated_Revision_Notebook.pdf` and includes the existing 224-page notebook unchanged except for the updated front matter, inserted keypoint pages and refreshed pagination/footer. Table of contents: page 3. The 1,000 question texts, original correct-answer keys, local-storage identifier, exam and practice scoring code have not been changed. **Do not clear your browser data** when replacing the repository files.
+The original complete companion teaching text is preserved as supplied. The original condensed source is not reproduced as a separate layer, as its principles are represented in the retained full teaching chapters and the revised clinical summary guides. This is an editorial consolidation, not an independent medical guideline revalidation or specialist peer review. Browser-level iOS Safari testing remains advisable after upload.
 
-The source-derived 224-page text has not been revised line-by-line for all guideline changes. The added keypoints highlight selected guideline-sensitive issues; consult original references and a licensed medical provider for clinical decisions. See `QA_KEYPOINTS.md`.
+See `QA_CONSOLIDATION.md` for checks and the page-map summary.
