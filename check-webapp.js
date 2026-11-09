@@ -196,7 +196,7 @@ test('local core PDF links and icons all exist',()=>{
  const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./data/keypoints.js')&&html.includes('./assets/app.js'));
 });
 test('offline cache version updated and PDFs do not return disguised HTML when offline',()=>{
- const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-full-visible-v12-20261109'));
+ const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-static-reading-v13-20261109'));
  assert(sw.includes('./data/keypoints.js'));
  assert(sw.includes("status:503")&&sw.includes("req.mode==='navigate'"));
 });
@@ -215,13 +215,13 @@ test('all 78 keypoint sections are mapped exactly once to the syllabus',()=>{
 });
 test('HTML keypoints accessible from notebook, question feedback and direct URLs',()=>{
  const b=a.load('#notebook');assert.match(b.root.innerHTML,/78 revised learning-outcome takeaways/);
- assert.match(b.root.innerHTML,/volume1.html#contents/);
+ assert.match(b.root.innerHTML,/book\/index\.html/);
  const k=b.load('#keypoints?topic=8');
  assert.match(k.root.innerHTML,/Paediatric sleep-disordered breathing/);
  assert.match(k.root.innerHTML,/CASE 03/);
  assert.match(k.root.innerHTML,/Start Topic 8 practice/);
  const v=k.load('#browse-detail?question=1');v.click('browse-reveal');
- assert.match(v.root.innerHTML,/Volume I §1.6/);assert.match(v.root.innerHTML,/volume1.html\?from=question-1#section-1\.6/);
+ assert.match(v.root.innerHTML,/Volume I §1.6/);assert.match(v.root.innerHTML,/book\/chapter-01\.html#section-1\.6/);
 });
 test('all ten updated keypoint topics have direct links without dead ends',()=>{
  for(let i=1;i<=10;i++){
@@ -261,7 +261,7 @@ test('Volume I direct SBA links can be answered and scored accurately',()=>{
  const q=Q.find(x=>x.number===71);assert(q);
  b.click('answer',{choice:String(q.key)});
  assert.equal(b.state().progress[71].correct,true);
- assert.match(b.root.innerHTML,/volume1.html\?from=session#section-1\.3/);
+ assert.match(b.root.innerHTML,/book\/chapter-01\.html#section-1\.3/);
  b.click('finish');
  assert.match(b.root.innerHTML,/100%[\s\S]*1 \/ 1 correct/);
  assert.equal(b.state().history[0].correct,1);
