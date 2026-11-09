@@ -1,0 +1,182 @@
+[
+  {
+    "name": "iphone chapter directory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone full content present",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone teaching prose visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone original table visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone source figure loads",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone lesson before questions in DOM",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone chapter anchor targets visible section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone Read chapter click lands",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone SBA deep link exact section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone search finds clinical text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone can mark lesson revised",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "iphone no JavaScript exceptions",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad chapter directory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad full content present",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad teaching prose visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad original table visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad source figure loads",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad lesson before questions in DOM",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad chapter anchor targets visible section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad Read chapter click lands",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad SBA deep link exact section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad search finds clinical text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad can mark lesson revised",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ipad no JavaScript exceptions",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop chapter directory",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop full content present",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop teaching prose visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop original table visible",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop source figure loads",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop lesson before questions in DOM",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop chapter anchor targets visible section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop Read chapter click lands",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop SBA deep link exact section",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop search finds clinical text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop can mark lesson revised",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "desktop no JavaScript exceptions",
+    "passed": true,
+    "detail": ""
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "files_checked": [
+    "index.html",
+    "notes.html",
+    "reader.html",
+    "volume1.html",
+    "book/index.html",
+    "book/chapter-01.html",
+    "book/chapter-02.html",
+    "book/chapter-03.html",
+    "book/chapter-04.html",
+    "book/chapter-05.html",
+    "book/chapter-06.html",
+    "book/chapter-07.html",
+    "book/chapter-08.html",
+    "book/chapter-09.html",
+    "book/chapter-10.html"
+  ],
+  "local_links_checked": 2543,
+  "missing_local_assets": 0,
+  "unique_html_anchors": 106,
+  "chapters": 10,
+  "syllabus_sections": 78,
+  "sba_links": 1000,
+  "unique_sba_questions": 1000,
+  "tables": 105,
+  "figures": 38
+}

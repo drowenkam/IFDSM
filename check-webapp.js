@@ -19,7 +19,7 @@ function newApp(saved={},hash='#home'){
    addEventListener(name,cb){listeners[name]=cb;},
    createElement(){return {href:'',download:'',click(){},remove(){}};},
    body:{appendChild(){}},activeElement:{tagName:'BODY'}};
- const loc={hash,protocol:'file:'};
+ const loc={hash,protocol:'file:',navigatedTo:null,assign(url){this.navigatedTo=url;},replace(url){this.navigatedTo=url;}};
  const hist={pushState(_state,_unused,href){loc.hash=href;},replaceState(_state,_unused,href){loc.hash=href;}};
  const localStorage={getItem(key){return mem[key]||null;},setItem(key,val){mem[key]=val;},removeItem(key){delete mem[key];}};
  const windows={location:loc,confirm:()=>true,scrollTo(){},addEventListener(name,cb){winListeners[name]=cb;}};
@@ -69,7 +69,7 @@ test('original saved scores are isolated from revised questions',()=>{
  assert.equal(b.state(),null);
 });
 test('main screens render without throwing in VM (home / practice / exam / browse / progress / notebook / about)',()=>{
- for(const view of ['home','practice','exam','browse','progress','notebook','about']){
+ for(const view of ['home','practice','exam','browse','progress','about']){
   a.click('nav',{view});assert(a.root.innerHTML.length>200,view);
  }
 });
@@ -188,15 +188,16 @@ test('review distinguishes genuinely unanswered question from reveal-only',()=>{
  assert.match(b.root.innerHTML,/earned zero marks/);
  assert.doesNotMatch(b.root.innerHTML,/Revealed without an attempt/);
 });
-test('local core PDF links and icons all exist',()=>{
- for(const file of ['resources/IFDSM_Integrated_Revision_Notebook.pdf','resources/IFDSM_Question_Bank_Author_Edition.pdf',
+test('HTML reader, figures, bank, and offline assets exist (PDF not required)',()=>{
+ for(const file of ['notes.html','book/chapter-01.html','book/chapter-10.html',
    'assets/notebook-cover.webp','assets/icon-192.png','assets/icon-512.png','assets/styles.css','data/questions.js','data/keypoints.js','sw.js','manifest.webmanifest']){
   assert(fs.statSync(base+file).size>100,file);
  }
  const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./data/keypoints.js')&&html.includes('./assets/app.js'));
 });
 test('offline cache version updated and PDFs do not return disguised HTML when offline',()=>{
- const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-static-reading-v13-20261109'));
+ const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-fpros-reader-v21-20261109'));
+ assert(sw.includes('./notes.html')); 
  assert(sw.includes('./data/keypoints.js'));
  assert(sw.includes("status:503")&&sw.includes("req.mode==='navigate'"));
 });
@@ -213,30 +214,31 @@ test('all 78 keypoint sections are mapped exactly once to the syllabus',()=>{
    assert(k.practice.every(id=>Q.some(q=>q.number===id&&q.topic===k.id)));
  }
 });
-test('HTML keypoints accessible from notebook, question feedback and direct URLs',()=>{
- const b=a.load('#notebook');assert.match(b.root.innerHTML,/78 revised learning-outcome takeaways/);
- assert.match(b.root.innerHTML,/book\/index\.html/);
- const k=b.load('#keypoints?topic=8');
- assert.match(k.root.innerHTML,/Paediatric sleep-disordered breathing/);
- assert.match(k.root.innerHTML,/CASE 03/);
- assert.match(k.root.innerHTML,/Start Topic 8 practice/);
- const v=k.load('#browse-detail?question=1');v.click('browse-reveal');
- assert.match(v.root.innerHTML,/Volume I §1.6/);assert.match(v.root.innerHTML,/book\/chapter-01\.html#section-1\.6/);
+test('full-text Volume I notes reachable from every legacy entry',()=>{
+ const b=a.load('#notebook'); assert.equal(b.loc.navigatedTo,'./notes.html?v=21#chapters');
+ const k=a.load('#keypoints?topic=8');assert.equal(k.loc.navigatedTo,'./notes.html?v=21#keypoints-8');
+ const reader=fs.readFileSync(base+'notes.html','utf8');
+ assert.match(reader,/id="chapters"/);assert.match(reader,/id="unit-8"/);
+ assert.match(reader,/id="section-8\.1"/);
+ assert(reader.length>500000);assert.match(reader,/Sleep is not passive rest/);
 });
-test('all ten updated keypoint topics have direct links without dead ends',()=>{
+test('all ten topics have visible full lessons, keypoints, and exact SBA anchors',()=>{
+ const reader=fs.readFileSync(base+'notes.html','utf8');
  for(let i=1;i<=10;i++){
-   const v=a.load('#keypoints?topic='+i);
-   assert.match(v.root.innerHTML,new RegExp('TOPIC '+String(i).padStart(2,'0')));
-   assert.match(v.root.innerHTML,/Read complete Chapter/);
-   assert.match(v.root.innerHTML,/Clinical SBA decisions/);
-   assert.match(v.root.innerHTML,/Start Topic/);
+   assert(reader.includes('id="unit-'+i+'"'));
+   assert(reader.includes('id="keypoints-'+i+'"'));
+   const k=a.load('#keypoints?topic='+i);
+   assert.equal(k.loc.navigatedTo,'./notes.html?v=21#keypoints-'+i);
  }
+ assert.equal((reader.match(/<article class="note-page"/g)||[]).length,78);
+ assert.equal((reader.match(/class="section-sba"/g)||[]).length,78);
+ assert.equal((reader.match(/<table /g)||[]).length,105);
+ assert.equal((reader.match(/class="study-figure"/g)||[]).length,38);
 });
-test('reading updated keypoints never changes existing answer progress',()=>{
- const state=a.state();const copy=JSON.stringify(state);
- const b=a.load('#keypoints?topic=10');
- assert.match(b.root.innerHTML,/informed consent/i);
- assert.equal(JSON.stringify(b.state()),copy);
+test('reading updated notes never changes existing SBA answer progress',()=>{
+ const before=JSON.stringify(a.state());
+ const k=a.load('#keypoints?topic=10');assert.equal(k.loc.navigatedTo,'./notes.html?v=21#keypoints-10');
+ assert.equal(JSON.stringify(k.state()),before);
 });
 
 console.log('TEST RESULTS');console.log(results.map(row=>row[0]+' '+row[1]+(row[2]?'\n'+row[2]:'')).join('\n'));
@@ -261,10 +263,20 @@ test('Volume I direct SBA links can be answered and scored accurately',()=>{
  const q=Q.find(x=>x.number===71);assert(q);
  b.click('answer',{choice:String(q.key)});
  assert.equal(b.state().progress[71].correct,true);
- assert.match(b.root.innerHTML,/book\/chapter-01\.html#section-1\.3/);
+ assert.match(b.root.innerHTML,/notes\.html\?fromQuestion=71&v=21#section-1\.3/);
  b.click('finish');
  assert.match(b.root.innerHTML,/100%[\s\S]*1 \/ 1 correct/);
  assert.equal(b.state().history[0].correct,1);
+});
+test('SBA opened from Volume I keeps a visible return link to the exact lesson',()=>{
+  const x=newApp({},'#browse-detail?question=32&fromSection=1.1');
+  assert.match(x.root.innerHTML,/Return to Volume I §1.1/);
+  assert.match(x.root.innerHTML,/notes\.html\?v=21#section-1\.1/);
+  x.click('practice-one',{id:'32'});
+  const q=Q.find(q=>q.number===32);
+  x.click('answer',{choice:String(q.key)});
+  assert.match(x.root.innerHTML,/notes\.html\?fromQuestion=32&v=21#section-1\.1/);
+  assert.equal(x.state().progress[32].correct,true);
 });
 console.log('CHAPTER ADD-ON CHECKS:',results.filter(r=>r[0]==='FAIL').length===0?'PASS':'FAIL');
 if(results.some(x=>x[0]==='FAIL'))process.exitCode=1;
