@@ -1,52 +1,64 @@
-# Navigation and PDF-reader repair (November 2026)
+# IFDSM — Dental Sleep Medicine | Full HTML Volume I + 1,000 SBA Questions
 
-**Fixes:** Persistent return navigation in Volume I chapters, keypoints and Notebook views; an in-site PDF reader with a visible Return, Contents, Home and Question Bank bar; iPhone/iPad bottom-bar return shortcuts; correct PDF page references in the notebook overview; safer offline fallback for notes/reader pages.
+GitHub Pages-ready website, prepared for **Dr. Kam O Man, Owen**. Independent revision material, not an official IFDSM publication.
 
-**Deployment:** Unzip and upload the contents to the **existing GitHub Pages repository root**, replacing prior files. Make sure `reader.html` is included. Refresh while online. Export your Progress JSON first as a precaution.
+## What changed in this edition
 
-**Content and scoring:** All 1,000 questions, their answers, local progress storage key, and both source PDFs are unchanged.
+**Volume I now reads like a real online textbook.** Select **Volume I** from the site header or **Notebook → Read full chapters online**. No PDF viewer is required for normal study.
 
-**iPhone and iPad:** PDFs are opened by a local web reader with return controls. If Safari will not render the embedded PDF, use “Open PDF separately”; the site reader remains in the originating tab. PDF offline access is best guaranteed by saving a copy to Files.
+- Ten complete web-readable teaching chapters with **78 learning outcome sections**.
+- Approximately **61,000 words** of source-derived teaching text converted from the original *IFDSM Examination Revision Companion*, alongside the existing concise clinical keypoints, 30 case discussions, traps, and SBA links.
+- **38 original illustrations** and **105 reconstructed reference tables** presented directly in the website; wide tables scroll horizontally on small devices.
+- Expand/collapse full text for each learning outcome, jump to any chapter or section, move between chapters, and mark individual sections as revised.
+- Each section links to its exact SBA questions, and SBA explanations link back to their section.
+- The master numerical tables, original 60-question mock, abbreviations, and reference list are also available as HTML in the Volume I contents.
+- **1,000 SBA questions, correct answers and scoring code have not changed.** Question progress remains under the same browser storage key; Volume I reading checks are stored separately.
+- The original consolidated PDF and question-bank PDF are available as optional archival copies, not as the primary reading interface.
 
-**Navigation tests:** See `qa/check-navigation.js` and `QA_NAVIGATION.md`.
+## Uploading to GitHub Pages
 
----
+1. In your current website, go to Progress and **export your progress JSON** as a precaution.
+2. Extract the provided ZIP. Upload the **contents**, not the enclosing folder, to the root of your existing GitHub repository, replacing earlier files. Keep `index.html`, `notes.html`, `sw.js`, `data`, `assets` and `resources` in their exact relative locations.
+3. Under repository **Settings → Pages**, publish from `main` branch / `(root)` if not already enabled.
+4. Open your GitHub Pages URL online and refresh. Close/reopen the Home Screen app if it still displays an old cached version; occasionally the service worker requires another online reload.
+5. Select **Volume I → Chapter 1 → Full teaching notes**. If you see the paragraph beginning “Sleep is not passive rest,” you are on the updated HTML reader.
 
-# IFDSM Dental Sleep Medicine — Consolidated Volume I and 1,000-SBA Website
+## iPhone / iPad
 
-**Prepared and compiled by Dr. Kam O Man, Owen.** Independent educational revision resource; not an official IFDSM publication.
+- Open the published site in Safari → Share → Add to Home Screen.
+- Chapter content is selectable, resizable HTML text. Tables scroll sideways. Figures load inline.
+- A persistent bottom navigation bar on smaller screens includes Back, Contents, Chapters, Question Bank and Progress.
+- All core HTML, question data and 38 figure images are cached by the offline service worker after a successful online visit. The source PDFs are optional and may need to be downloaded separately for offline viewing.
 
-## What changed in Volume I
+## User progress and privacy
 
-The 253-page chaptered compilation has been edited to **177 pages** by removing 65 repeated condensed-topic pages and the two duplicate numeric-summary pages. It is **not** a stack of two notebooks anymore.
+- SBA storage key: `ifdsm-sba-examstyle-v2` (unchanged).
+- New chapter revision checkboxes storage key: `ifdsm-volume1-read-v1`.
+- Data is held in the current browser. It does not automatically synchronise between iPhone, iPad and desktop. Use the question bank's Export/Import Progress controls to move saved SBA answers.
+- Do not publish identifiable patient data in GitHub Pages.
 
-Volume I now contains:
+## Structure
 
-1. A revised cover and reader instructions; an interactive ten-chapter contents page.
-2. Exactly one set of master numerical tables (three pages, from the detailed companion).
-3. A clinical revision guide for each of the ten chapters, incorporating **78 concise outcome-specific keypoints**, 30 clinical decisions, examination traps and exact corresponding SBA question numbers.
-4. The complete original **142-page detailed examination companion teaching content**, including diagrams, tables, longer self-tests, original 60-question mock, answer key and references. No detailed source page was removed.
+- `index.html` — SBA bank and website home.
+- `notes.html` — full Volume I HTML textbook reader.
+- `data/full_notes.js` — full teaching text organised into 78 sections plus appendices.
+- `data/chapters.js` — keypoints, chapter metadata and exact SBA mappings.
+- `data/questions.js` — 1,000 unchanged SBA questions.
+- `assets/figures` — 38 original illustrations from the source revision companion.
+- `assets/notes.js` / `assets/notes.css` — responsive chapter reader.
+- `sw.js` — versioned offline precache for all core HTML and figures.
+- `reader.html` and `resources/*.pdf` — optional archival PDF reader and copies.
+- `qa/check-webapp.js`, `qa/check-full-html.js` — reproducible scoring/content tests.
 
-Each learning section on **notes.html** now has a direct **Read §x.y full explanation** PDF link as well as links to exactly those SBA questions. The PDF contents and bookmarks use the revised page numbers.
+## Tests and limitations
 
-We did not update or overwrite the 1,000 SBA question text, correct answer positions or saved-score key. Progress remains local to the same browser and website address.
+Run in Node.js:
 
-## GitHub Pages upload
+```sh
+node qa/check-webapp.js
+node qa/check-full-html.js
+```
 
-1. Export existing question progress from the current site first.
-2. Extract the ZIP archive and upload **the folder contents** into the root of your current GitHub Pages repository.
-3. Replace `index.html`, `notes.html`, `data/`, `assets/`, `resources/`, and `sw.js`. Keep `.nojekyll` at root.
-4. Open the site with internet access and refresh twice if an earlier offline app version is cached.
-5. From the website, select **Volume I** → chapter → § learning outcome → **Read full explanation**, or select the related numbered SBA.
+Both suites pass. HTML layout/interaction smoke checks passed in headless Chromium using in-memory page content at iPhone-, iPad- and desktop-sized viewports. Actual local-file and localhost navigation was blocked by this environment's browser policy; **the fully deployed GitHub Pages service-worker and physical iOS Safari behaviour have not been tested**.
 
-## Offline / scoring notes
-
-The HTML and all 1,000 SBA questions are precached for offline use after first online access. The PDF is cached on demand after successful viewing; for reliable offline reading on an iPhone/iPad, save the PDF in Files.
-
-Scores, marks, answer keys and session storage keys are unchanged. The release changes *only the Volume I structure and website document links*. There is no account-based synchronization between devices.
-
-## Scope and caution
-
-The original complete companion teaching text is preserved as supplied. The original condensed source is not reproduced as a separate layer, as its principles are represented in the retained full teaching chapters and the revised clinical summary guides. This is an editorial consolidation, not an independent medical guideline revalidation or specialist peer review. Browser-level iOS Safari testing remains advisable after upload.
-
-See `QA_CONSOLIDATION.md` for checks and the page-map summary.
+The detailed text comes from the user's original IFDSM companion. The website conversion did not independently revalidate clinical guidelines or correct historical claims; the latest keypoint overlays remain a separate interpretive guide. Some complex multipage tables are reconstructed from the PDF and may not have exactly the original visual formatting, although their text is exposed as HTML. The original PDF remains available when exact source layout is needed.

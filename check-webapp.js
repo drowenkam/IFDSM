@@ -196,7 +196,7 @@ test('local core PDF links and icons all exist',()=>{
  const html=fs.readFileSync(base+'index.html','utf8');assert(html.includes('./data/questions.js')&&html.includes('./data/keypoints.js')&&html.includes('./assets/app.js'));
 });
 test('offline cache version updated and PDFs do not return disguised HTML when offline',()=>{
- const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-navigation-backfix-20261109-v9'));
+ const sw=fs.readFileSync(base+'sw.js','utf8');assert(sw.includes('ifdsm-full-html-chapters-20261109-v10'));
  assert(sw.includes('./data/keypoints.js'));
  assert(sw.includes("status:503")&&sw.includes("req.mode==='navigate'"));
 });
@@ -227,7 +227,7 @@ test('all ten updated keypoint topics have direct links without dead ends',()=>{
  for(let i=1;i<=10;i++){
    const v=a.load('#keypoints?topic='+i);
    assert.match(v.root.innerHTML,new RegExp('TOPIC '+String(i).padStart(2,'0')));
-   assert.match(v.root.innerHTML,/Detailed source chapter/);
+   assert.match(v.root.innerHTML,/Read complete Chapter/);
    assert.match(v.root.innerHTML,/Clinical SBA decisions/);
    assert.match(v.root.innerHTML,/Start Topic/);
  }

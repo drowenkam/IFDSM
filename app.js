@@ -177,8 +177,8 @@
       </section>
       <section class="notebook-promo" aria-label="Companion revision notebook">
         <img src="./assets/notebook-cover.webp" width="90" height="128" loading="lazy" alt="Cover of Notes in Dental Sleep Medicine — integrated final edition" />
-        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I now contains 177 carefully consolidated pages with ten teaching chapters and no duplicated condensed layer. All 78 outcomes map to the 1,000 SBA questions.</p>
-          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./notes.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./reader.html?doc=volume1&from=home" class="btn btn-outline">Open full PDF ↗</a></div>
+        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I is now a complete web-readable textbook: all ten chapters, 78 learning outcomes, original illustrations, tables and explanations — with direct links to the 1,000 SBAs. No PDF viewer is needed.</p>
+          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./notes.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./notes.html#chapter-1" class="btn btn-outline">Read full Chapter 1 online →</a></div>
         </div>
       </section>
       <section><div class="section-head"><div><div class="eyebrow">Complete syllabus coverage</div><h2>Explore the ten topics</h2></div><button class="btn btn-small btn-outline" data-action="nav" data-view="browse" type="button">Browse all questions</button></div>
@@ -380,10 +380,10 @@
     const data=KEYPOINTS.find(k=>k.id===desired)||KEYPOINTS[0];
     if(!data)return '<div class="empty">Keypoint data unavailable. Re-upload the entire website folder, including data/keypoints.js.</div>';
     const m=NOTEBOOK_MAP.find(x=>x.id===data.id),pdfAt=(page)=>readPDF(page,'keypoints','volume1',data.id);
-    return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The revision layer for 78 syllabus learning outcomes: decisions first, details second. Select a competency; links below can take you to the full illustrated PDF or matching SBA items.')}
+    return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The keypoints connect to complete HTML teaching chapters, clinical illustrations, tables and exactly matched SBA questions — without opening a PDF.')}
       <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="./notes.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
       <section class="keypoints-toolbar card"><div><div class="eyebrow">Select your competency</div><div class="keypoints-tabs">${KEYPOINTS.map(t=>`<a class="keypoint-tab ${t.id===data.id?'active':''}" href="#keypoints?topic=${t.id}" aria-label="Topic ${t.id}">${String(t.id).padStart(2,'0')}</a>`).join('')}</div></div>
-      <div class="keypoints-buttons"><a class="btn btn-small btn-outline" href="${pdfAt(m.key[0])}">Open updated keypoints in PDF ↗</a><a class="btn btn-small btn-outline" href="${pdfAt(m.detail[0])}">Detailed source chapter ↗</a></div></section>
+      <div class="keypoints-buttons"><a class="btn btn-small btn-primary" href="./notes.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Read complete Chapter ${data.id} online →</a><a class="btn btn-small btn-outline" href="./notes.html#contents">All chapters →</a></div></section>
       <section class="keypoints-heading"><div class="eyebrow">TOPIC ${String(data.id).padStart(2,'0')}</div><h2>${safe(data.title)}</h2><p>${safe(data.lens)}</p></section>
       <section class="card keypoint-section"><h3>Exam-ready keypoints <span class="quiet">${data.points.length} syllabus sections</span></h3>
       ${data.points.map(p=>`<article class="keypoint-line"><span class="keypoint-code">§${safe(p.section)}</span><div><strong>${safe(sectionTitle(p.section))}</strong><p>${safe(p.text)}</p></div></article>`).join('')}</section>
@@ -399,37 +399,37 @@
   function renderNotebook(){
     const pages=(a)=>`${a[0]}–${a[1]}`;
     const pdfAt=(page)=>readPDF(page,'notebook');
-    return `${pageHeading('Volume I · Clinical keypoints updated','Notes in Dental Sleep Medicine','The chaptered Volume I reader maps 78 learning outcomes to all 1,000 exact SBA questions; the original notes and full explanations remain available in the PDF.')}
+    return `${pageHeading('Volume I · Clinical keypoints updated','Notes in Dental Sleep Medicine','The chapter reader now contains the entire teaching text, diagrams and tables as native HTML, organised into 78 learning sections linked to the 1,000 SBAs.')}
       <section class="notebook-overview card">
         <img src="./assets/notebook-cover.webp" width="200" height="285" alt="Cover of Notes in Dental Sleep Medicine" />
         <div class="notebook-overview-text"><div class="eyebrow">November 2026 · Clinical SBA keypoint revision</div><h2>Updated integrated revision notebook</h2>
           <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original comprehensive teaching content preserved.</p>
-          <div class="notebook-promo-actions"><a href="./notes.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="./reader.html?doc=volume1&from=notebook" class="btn btn-primary">Open updated PDF ↗</a><a class="btn btn-outline" href="./notes.html#chapter-1">Study chapter 1 in HTML →</a></div>
-          <p class="notebook-fineprint">The consolidated 177-page Volume I notebook includes a clickable chapter contents page and an SBA concordance at each chapter opening. Download it into Files if your iPhone/iPad PDF viewer does not retain it offline.</p>
+          <div class="notebook-promo-actions"><a href="./notes.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="./notes.html#reference-numbers" class="btn btn-outline">Master numbers online →</a><a class="btn btn-outline" href="./notes.html#chapter-1">Study chapter 1 in HTML →</a></div>
+          <p class="notebook-fineprint">Read all sections, original diagrams and tables in the website itself. The PDF is kept only as an optional archival download.</p>
         </div>
       </section>
       <section class="notebook-guide"><div class="section-head"><div><div class="eyebrow">Choose what to revise</div><h2>Ten competencies, three layers</h2></div></div>
         <div class="notebook-topic-list">${NOTEBOOK_MAP.map(t=>{
           const title=topicTitle(t.id);
           return `<article class="notebook-topic"><div class="notebook-topic-number">${String(t.id).padStart(2,'0')}</div>
-            <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Clinical guide: pp. ${pages(t.key)} · Full explanations: pp. ${pages(t.detail)}</p>
-            <div class="notebook-topic-links"><a href="./notes.html#chapter-${t.id}">Read chapter in HTML →</a><a href="${pdfAt(t.key[0])}">Keypoints PDF ↗</a><a href="./notes.html#chapter-${t.id}">Clinical SBA links →</a><a href="${pdfAt(t.detail[0])}">Full explanation ↗</a></div></div></article>`}).join('')}</div>
+            <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Full teaching text, clinical keypoints, figures, tables and section-specific SBA links.</p>
+            <div class="notebook-topic-links"><a href="./notes.html#chapter-${t.id}">Read chapter in HTML →</a><a href="./notes.html#chapter-${t.id}">Full chapter text →</a><a href="./notes.html#chapter-${t.id}">Clinical SBA links →</a></div></div></article>`}).join('')}</div>
       </section>
       <section class="notebook-extras"><h2>Examination quick links</h2><div class="notebook-extra-grid">
-        <a href="${pdfAt(4)}" class="notebook-extra"><strong>Master number tables</strong><span>Pages 4–6 · Interpret values in clinical context ↗</span></a>
-        <a href="${pdfAt(168)}" class="notebook-extra"><strong>Original 60-question mock</strong><span>Pages 168–173 · Original self-assessment ↗</span></a>
-        <a href="${pdfAt(174)}" class="notebook-extra"><strong>Abbreviations & source references</strong><span>Pages 174–177 ↗</span></a>
+        <a href="./notes.html#reference-numbers" class="notebook-extra"><strong>Master number tables</strong><span>Read thresholds and tables on this website →</span></a>
+        <a href="./notes.html#reference-mock" class="notebook-extra"><strong>Original 60-question mock</strong><span>Read the 60 questions and answer key online →</span></a>
+        <a href="./notes.html#reference-sources" class="notebook-extra"><strong>Abbreviations &amp; source references</strong><span>Read references in HTML →</span></a>
       </div></section>
-      <div class="notice" role="note">PDF page-jump links depend on the viewer. Some iOS PDF viewers start at page one; use the page numbers above or PDF bookmarks. The HTML keypoint pages work without a PDF viewer after the website is installed offline.</div>`;
+      <div class="notice" role="note">All full chapters are now web pages. You can read the text, diagrams and tables without opening the PDF; download the PDF only if you want a separate copy.</div>`;
   }
   function renderAbout(){
     return `${pageHeading('About this edition','About, downloads & installation','A complete standalone web version of the Dental Sleep Medicine (IFDSM) examination revision question bank.')}
       <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>160 clinician-oriented decision cases, 424 applied clinical SBAs, 369 interpretation questions and 47 focused knowledge questions; all with one best option.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving, resume after closing the browser, score breakdown and offline access after the first successful online visit.</li></ul></section>
-      <section class="card"><h3>Reference PDF books</h3><p>The consolidated 177-page notebook supplied for this website is available with its original cover, tables and illustrations. Use the dedicated notebook page for topic-level page references.</p>
-      <button data-action="nav" data-view="notebook" type="button" class="btn btn-small btn-outline">Browse notebook chapters →</button><p></p>
+      <section class="card"><h3>Full Volume I textbook online</h3><p>All ten chapters, the original diagrams and tables, the mock paper and the references are accessible as readable HTML pages. The source PDFs below are optional downloads.</p>
+      <a href="./notes.html#contents" class="btn btn-small btn-primary">Read all textbook chapters →</a><p></p>
       <a href="./reader.html?doc=volume1&from=about">↗ Dental Sleep Medicine IFDSM — Consolidated Volume I (177 pages)</a><p></p>
       <a href="./reader.html?doc=questions&from=about">↗ The Question Bank — Author Edition (PDF)</a>
-      <p style="margin-top:17px;color:var(--muted)">The website and question data work without a PDF viewer; these files are additional reference material.</p></section>
+      <p style="margin-top:17px;color:var(--muted)">The website includes the complete textbook content and the question bank in HTML; these files are optional archived copies.</p></section>
       <section class="card"><h3>Add the website to your iPhone / iPad</h3><ol style="padding-left:19px;color:var(--ink-soft);font-size:13px;line-height:1.9"><li>Open your published GitHub Pages website in <strong>Safari</strong>.</li><li>Tap <strong>Share</strong> and choose <strong>Add to Home Screen</strong>.</li><li>Open the new IFDSM icon and begin studying.</li><li>Visit online once after updates to ensure the latest questions are available offline.</li></ol></section>
       <section class="card"><h3>Author and academic note</h3><p><strong>Dr. Kam O Man, Owen</strong><br/>BDS (HK) · MFDS RCSEd · MFDS RCPS (Glasg)<br/>MClinDent (Fixed and Removable Prosthodontics) (KCL)<br/>MImpDent (RCSEd) · MGDS RCSI</p>
       <p>This educational website is an independently prepared revision resource based on the accompanying notebook. It is not an official IFDSM publication, not endorsed by the examining body, and not a substitute for an individual patient assessment or current professional guidance.</p></section></div>

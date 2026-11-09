@@ -1,0 +1,11 @@
+PASS All 10 chapters, 78 learning outcomes and exactly 1,000 question links remain
+PASS Every syllabus section contains substantive full teaching notes from original companion
+PASS All 38 source illustrations embedded as website assets, no figure points to a PDF
+PASS Semantic tables, full definitions and footnoted source references retained
+PASS Master numbers, 60-question mock, bibliography/abbreviations read as HTML
+PASS Volume I online chapter HTML is primary, PDF is optional
+PASS All question answer keys and progress key preserved
+PASS Offline service worker pre-caches full notes and every chapter illustration
+PASS All ten sections have previous/next and all chapters navigation available
+PASS No generated individual per-page HTML proliferation
+SUMMARY 10 passed, 0 failed
