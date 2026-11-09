@@ -1,0 +1,30 @@
+TEST RESULTS
+PASS exactly 1,000 unique questions across 10 topics / 78 syllabus sections
+PASS all questions have five options, valid one-best-answer key and teaching text
+PASS question keys match the separate 1,000-row published answer CSV
+PASS all / none of the above eliminated and all choices remain independent
+PASS original saved scores are isolated from revised questions
+PASS main screens render without throwing in VM (home / practice / exam / browse / progress / notebook / about)
+PASS unseen-first practice filter excludes already answered questions
+PASS pause/resume and reload restore the exact question, answers and progress
+PASS incomplete study session scores out of total with correct breakdown
+PASS completed result review is deep linkable and reload safe
+PASS exam answers editable, not recorded as progress before finishing
+PASS exam partial score is 3/25 = 12% and all 22 omissions count zero
+PASS progress counts unique questions once; latest answers and session history distinct
+PASS 1000-question all-wrong session review paginated; never renders 1000 giant items at once
+PASS browse search / paging / back navigation are reachable
+PASS valid question direct links survive reload; invalid ones recover to browse / results
+PASS invalid / corrupted persisted session cannot cause a stuck or blank screen
+PASS unseen-first excludes answered numbers in a new practice set
+PASS all 1000 keys score 1000/1000 and progress reaches 100%
+PASS review distinguishes genuinely unanswered question from reveal-only
+PASS local core PDF links and icons all exist
+PASS offline cache version updated and PDFs do not return disguised HTML when offline
+PASS all 78 keypoint sections are mapped exactly once to the syllabus
+PASS HTML keypoints accessible from notebook, question feedback and direct URLs
+PASS all ten updated keypoint topics have direct links without dead ends
+PASS reading updated keypoints never changes existing answer progress
+SUMMARY: 26 passed, 0 failed
+CHAPTER ADD-ON CHECKS: PASS
+

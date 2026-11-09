@@ -1,0 +1,44 @@
+(()=>{'use strict';
+const C=window.IFDSM_CHAPTERS||[],main=document.getElementById('main-notes'),nav=document.getElementById('chapter-list'),side=document.getElementById('notes-sidebar'),filter=document.getElementById('notes-search');
+const text=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const qhref=id=>'./index.html#browse-detail?question='+id;
+const secHref=id=>'#section-'+id;
+const pdf='./resources/IFDSM_Integrated_Revision_Notebook.pdf';
+const pdfUrl=(page,context='chapter',extra='')=>`./reader.html?doc=volume1&page=${page}&from=notes&${context}=${extra}`;
+const from=new URLSearchParams(location.search).get('from')||'';
+const returnLink=from==='session'?'./index.html#session':from==='results'?'./index.html#results':from==='keypoints'?`./index.html#keypoints?topic=${Math.min(10,Math.max(1,Number(new URLSearchParams(location.search).get('topic'))||1))}`:/^question-\d{1,4}$/.test(from)?`./index.html#browse-detail?question=${from.slice(9)}`:'./index.html#notebook';
+const returnLabel=from==='session'?'← Return to practice':from==='results'?'← Return to results':from==='keypoints'?'← Return to keypoints':from.startsWith('question-')?'← Return to SBA':'← Back to Notebook';
+const progressKey='ifdsm-sba-examstyle-v2';
+let progress={};try{const raw=JSON.parse(localStorage.getItem(progressKey)||'{}');if(raw.progress&&typeof raw.progress==='object')progress=raw.progress;}catch(e){}
+const score=(arr)=>({seen:arr.filter(i=>progress[i]&&Number.isInteger(progress[i].answer)).length,correct:arr.filter(i=>progress[i]&&progress[i].correct===true).length});
+function page(){let h=decodeURIComponent((location.hash||'#chapter-1').slice(1));let sec=null,topic=1;
+let sm=h.match(/^section-(\d+)\.(\d+)$/),cm=h.match(/^chapter-(\d+)$/);
+if(sm){sec=sm[1]+'.'+sm[2];topic=+sm[1];}
+else if(cm)topic=+cm[1];
+else if(h==='contents')topic=0;
+if(topic>10||topic<0)topic=1;
+return{topic,sec};}
+function stateClass(id){const p=progress[id];return !p?'unseen':p.correct?'done':'wrong';}
+function questionLink(id){return `<a class="qlink ${stateClass(id)}" href="${qhref(id)}" title="Open and answer SBA question ${id}">Q${id}</a>`;}
+function renderNav(){const {topic}=page();document.getElementById('progress-total').textContent=score(C.flatMap(c=>c.sections.flatMap(s=>s.question_ids))).seen+'/1000 attempted';
+let val=(filter.value||'').toLowerCase().trim();nav.innerHTML=`<a class="chapter-nav ${topic===0?'active':''}" href="#contents"><strong>All chapters</strong><small>Volume I contents</small></a>`+C.filter(c=>!val||(c.id+' '+c.title+' '+c.sections.map(s=>s.id+' '+s.title+' '+s.text).join(' ')).toLowerCase().includes(val)).map(c=>`<a class="chapter-nav ${c.id===topic?'active':''}" href="#chapter-${c.id}"><strong>${String(c.id).padStart(2,'0')} · ${text(c.short)}</strong><small>${c.sections.length} sections · ${c.count} SBAs · ${score(c.sections.flatMap(s=>s.question_ids)).seen} attempted</small></a>`).join('');
+if(val&&!nav.querySelector('.chapter-nav[href^="#chapter-"]'))nav.innerHTML+='<p class="side-note">No chapter matches this search.</p>';
+}
+function renderContents(){main.innerHTML=`<section class="hero"><div class="breadcrumb">VOLUME I · FULL CONTENTS</div><h1>Notes in Dental Sleep Medicine</h1><p>Ten consolidated teaching chapters, 78 individual learning outcomes and 1,000 mapped SBA questions. Each section has a quick clinical keypoint and a direct link to its full explanation in the PDF.</p><div class="stats"><div class="stat"><strong>78</strong> learning outcomes</div><div class="stat"><strong>1,000</strong> mapped SBAs</div><div class="stat"><strong>${score(C.flatMap(c=>c.sections.flatMap(s=>s.question_ids))).seen}</strong> attempted</div></div><div class="reader-intro" style="margin-top:20px"><a class="btn btn-primary" href="${pdfUrl(1,'chapter',0)}">Open full Volume I PDF ↗</a><a class="btn" href="./index.html#home">Open Volume II question bank →</a></div></section><section class="chapters-overview">${C.map(c=>`<a href="#chapter-${c.id}" class="overview-card"><span class="tag">CHAPTER ${String(c.id).padStart(2,'0')}</span><b>${text(c.title)}</b><small>${c.sections.length} syllabus sections · ${c.count} exact SBA links · ${score(c.sections.flatMap(s=>s.question_ids)).seen} attempted</small></a>`).join('')}</section>`;
+}
+function renderChapter(c,active){const ids=c.sections.flatMap(s=>s.question_ids),sc=score(ids),next=ids.find(i=>!progress[i]);
+const key=c.pages.key[0];const detail=c.pages.detail[0]; // updated consolidated PDF page map
+main.innerHTML=`<div class="breadcrumb"><a href="#contents">VOLUME I CONTENTS</a> / CHAPTER ${String(c.id).padStart(2,'0')}</div><section class="hero"><span class="tag">IFDSM COMPETENCY ${String(c.id).padStart(2,'0')}</span><h1>${text(c.title)}</h1><p>${text(c.lens)}</p><div class="stats"><div class="stat"><strong>${c.sections.length}</strong> learning sections</div><div class="stat"><strong>${c.count}</strong> linked SBAs</div><div class="stat"><strong>${sc.seen}/${c.count}</strong> attempted</div><div class="stat"><strong>${sc.correct}/${c.count}</strong> latest correct</div></div></section><div class="reader-intro"><a class="btn btn-primary" href="${pdfUrl(key,'chapter',c.id)}">Clinical revision guide ↗</a><a class="btn" href="${pdfUrl(detail,'chapter',c.id)}">Detailed explanations ↗</a>${next?`<a class="btn" href="${qhref(next)}">First unanswered: Q${next} →</a>`:''}</div>
+<section class="section-index"><h2>In this chapter · select a learning outcome</h2><div>${c.sections.map(s=>`<a href="${secHref(s.id)}"><b>§${s.id}</b>${text(s.title)} <span class="mini-score">(${score(s.question_ids).seen}/${s.count})</span></a>`).join('')}</div></section>
+${c.sections.map(s=>{const sc=score(s.question_ids);let first=s.question_ids.find(i=>!progress[i])||s.question_ids[0];return `<section class="section-card" id="section-${s.id}" data-section="${s.id}"><h2><span class="code">§${s.id}</span>${text(s.title)}</h2><p class="keypoint">${text(s.text)}</p><div class="qbar"><span class="stats-label">Volume II SBAs: <b>${s.count}</b> · <b>${sc.seen}</b> attempted · <b>${sc.correct}</b> latest correct</span></div><div class="qlinks">${s.question_ids.map(questionLink).join('')}</div><div class="section-actions"><a class="btn" href="${qhref(first)}">${sc.seen<s.count?'Answer next unattempted':'Review'} Q${first} →</a><a class="btn" href="./index.html#browse?section=${s.id}">Browse all §${s.id} questions →</a><a class="btn" href="${pdfUrl(s.pdf_page,'section',s.id)}">Read §${s.id} full explanation ↗</a></div></section>`}).join('')}
+<section class="other"><h2>Clinical decisions in Chapter ${c.id}</h2><div class="case-list">${c.cases.map((k,i)=>`<article class="case"><span class="label">CASE ${i+1}</span><h4>${text(k.situation)}</h4><p><b>Preferred decision:</b> ${text(k.decision)}</p><p><b>Reason:</b> ${text(k.why)}</p></article>`).join('')}</div></section><section class="other"><h2>Examination traps</h2><ul>${c.pitfalls.map(p=>`<li>${text(p)}</li>`).join('')}</ul><p class="guide"><b>Examiner cue:</b> ${text(c.cue)}</p></section><div class="chapter-pager">${c.id>1?`<a href="#chapter-${c.id-1}">← Chapter ${c.id-1}</a>`:'<a href="#contents">← Contents</a>'}${c.id<10?`<a href="#chapter-${c.id+1}">Chapter ${c.id+1} →</a>`:'<a href="#contents">Contents →</a>'}</div>`;
+}
+function render(){const {topic,sec}=page();renderNav();if(!topic)renderContents();else renderChapter(C[topic-1]);
+const quick=document.getElementById('reader-quicknav');if(quick){quick.innerHTML=`<a class="quick-back" href="${returnLink}">${returnLabel}</a><a href="#contents">☷ All chapters</a>${topic?`<span class="quick-current">Ch ${topic}/10</span>`:''}`;}
+const mobileBack=document.getElementById('notes-mobile-back');if(mobileBack){mobileBack.href=returnLink;mobileBack.textContent=from==='session'?'← Practice':'← Back';}
+if(sec)requestAnimationFrame(()=>{let el=document.getElementById('section-'+sec);if(el){el.scrollIntoView({block:'start',behavior:'instant'});el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}});else window.scrollTo({top:0,behavior:'instant'});
+side.classList.remove('open');const toggle=document.getElementById('toggle-chapters');toggle.setAttribute('aria-expanded','false');}
+filter.addEventListener('input',renderNav);
+document.getElementById('toggle-chapters').addEventListener('click',()=>{const open=side.classList.toggle('open');document.getElementById('toggle-chapters').setAttribute('aria-expanded',String(open));});
+window.addEventListener('hashchange',render);window.addEventListener('pageshow',()=>{try{const r=JSON.parse(localStorage.getItem(progressKey)||'{}');progress=r.progress||{};}catch(e){}render();});
+if(!C.length){main.innerHTML='<div class="hero">Volume I chapter index not found. Upload <b>data/chapters.js</b> with the full folder.</div>';return;}render();})();

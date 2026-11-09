@@ -1,0 +1,14 @@
+PASS PDF reader returns to exact Volume I section
+PASS PDF reader returns to exact chapter and all contents
+PASS PDF reader returns to competency keypoints
+PASS PDF reader returns to Notebook, Home, Practice and About as requested
+PASS PDF reader disallows invalid/outside return destinations
+PASS Question-bank PDF route uses real 399-page book, handles limits
+PASS Invalid PDF page inputs are safely clamped, never leave blank page
+PASS All PDF entry points use in-site reader, not a standalone PDF
+PASS Volume I reader has visible home / contents return in desktop and mobile markup
+PASS Keypoints and notebook have persistent return nav in the question-bank app
+PASS Broken old page jumps 245 / 250 removed and actual pages are in bounds
+PASS Offline service worker recognises PDF reader route
+PASS Scoring data and PDF source files are unchanged
+NAVIGATION SUMMARY: 13 checks passed

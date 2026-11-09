@@ -1,3 +1,17 @@
+# Navigation and PDF-reader repair (November 2026)
+
+**Fixes:** Persistent return navigation in Volume I chapters, keypoints and Notebook views; an in-site PDF reader with a visible Return, Contents, Home and Question Bank bar; iPhone/iPad bottom-bar return shortcuts; correct PDF page references in the notebook overview; safer offline fallback for notes/reader pages.
+
+**Deployment:** Unzip and upload the contents to the **existing GitHub Pages repository root**, replacing prior files. Make sure `reader.html` is included. Refresh while online. Export your Progress JSON first as a precaution.
+
+**Content and scoring:** All 1,000 questions, their answers, local progress storage key, and both source PDFs are unchanged.
+
+**iPhone and iPad:** PDFs are opened by a local web reader with return controls. If Safari will not render the embedded PDF, use “Open PDF separately”; the site reader remains in the originating tab. PDF offline access is best guaranteed by saving a copy to Files.
+
+**Navigation tests:** See `qa/check-navigation.js` and `QA_NAVIGATION.md`.
+
+---
+
 # IFDSM Dental Sleep Medicine — Consolidated Volume I and 1,000-SBA Website
 
 **Prepared and compiled by Dr. Kam O Man, Owen.** Independent educational revision resource; not an official IFDSM publication.
