@@ -4,8 +4,16 @@
   const Q = Array.isArray(window.IFDSM_QUESTIONS) ? window.IFDSM_QUESTIONS : [];
   const TOPICS = Array.isArray(window.IFDSM_TOPICS) ? window.IFDSM_TOPICS : [];
   const KEYPOINTS = Array.isArray(window.IFDSM_KEYPOINTS) ? window.IFDSM_KEYPOINTS : [];
+  const BOOK = Array.isArray(window.IFDSM_BOOK_CHAPTERS) ? window.IFDSM_BOOK_CHAPTERS : [];
+  const BOOK_SECTIONS = new Map(BOOK.flatMap(ch=>ch.sections.map(sec=>[sec.id,{...sec,chapter:ch.id,chapterTitle:ch.title}])));
+  const NOTE_KEY='ifdsm-volume1-revised-sections-v1';
+  const LAST_NOTE_KEY='ifdsm-volume1-last-section-v1';
+  const readReviewed=()=>{try{const x=JSON.parse(localStorage.getItem(NOTE_KEY)||'[]');return Array.isArray(x)?x.filter(id=>BOOK_SECTIONS.has(id)):[];}catch(e){return [];}};
+  let reviewedSections=readReviewed();
   const BY_ID = new Map(Q.map(x => [Number(x.number), x]));
   const NOTEBOOK_PDF = './resources/IFDSM_Integrated_Revision_Notebook.pdf';
+  const WORKING_NOTEBOOK = 'https://drowenkam.github.io/IFDSM/notes.html?v=21';
+  const readPDF = (page,from='notebook',doc='volume1',topic=null) => doc==='questions'?'./index.html#browse':(topic?`./notes.html?v=21#unit-${topic}`:'./notes.html?v=21#chapters');
   const NOTEBOOK_MAP = [{"id":1,"key":[7,8],"quick":[7,8],"detail":[9,27]},{"id":2,"key":[28,29],"quick":[28,29],"detail":[30,46]},{"id":3,"key":[47,48],"quick":[47,48],"detail":[49,65]},{"id":4,"key":[66,67],"quick":[66,67],"detail":[68,81]},{"id":5,"key":[82,83],"quick":[82,83],"detail":[84,100]},{"id":6,"key":[101,102],"quick":[101,102],"detail":[103,112]},{"id":7,"key":[113,114],"quick":[113,114],"detail":[115,121]},{"id":8,"key":[122,123],"quick":[122,123],"detail":[124,143]},{"id":9,"key":[144,145],"quick":[144,145],"detail":[146,153]},{"id":10,"key":[154,155],"quick":[154,155],"detail":[156,177]}];
 
   const KINDS = [
@@ -84,9 +92,20 @@
     view: (location.hash || '#home').replace('#','').split('?')[0],
     setupTopic: 'all', setupKind: 'all', setupCount: '20', setupPool:'unseen', examPool:'all',
     browseTopic:'all',browseKind:'all',browseSection:'all',browseSearch:'',browseBookmarks:false,browsePage:1,
-    browseDetail:null,browseReveal:false,reviewId:null,missedPage:1
+    browseDetail:null,browseReveal:false,fromSection:null,reviewId:null,missedPage:1,
+    chapterId:1,lessonSection:'1.1',lessonBack:'chapter',lessonQuestion:null,notebookSearch:''
   };
-  const VIEWS = new Set(['home','practice','exam','browse','browse-detail','session','progress','results','review','notebook','keypoints','about']);
+  const VIEWS = new Set(['home','practice','exam','browse','browse-detail','session','progress','results','review','notebook','chapter','lesson','keypoints','about']);
+  function redirectOldNotebookHash(){
+    const hash=location.hash||'';
+    let target=null;
+    if(hash==='#notebook')target=WORKING_NOTEBOOK+'#chapters';
+    else if(/^#chapter\?chapter=(\d{1,2})$/.test(hash)){const n=Number(hash.split('=')[1]);if(n>=1&&n<=10)target=WORKING_NOTEBOOK+'#unit-'+n;}
+    else if(/^#lesson\?section=(\d{1,2}\.\d{1,2})/.test(hash)){const sec=hash.match(/^#lesson\?section=(\d{1,2}\.\d{1,2})/)[1];target=WORKING_NOTEBOOK+'#section-'+sec;}
+    if(target){window.location.replace(target);return true;}
+    return false;
+  }
+  redirectOldNotebookHash();
   function routeFromHash(){
     const hash=(location.hash||'#home').slice(1),[v,query='']=hash.split('?');
     if(v==='main-app')return ui.view||'home'; // Accessibility skip-to-content anchor is not a screen route.
@@ -95,9 +114,14 @@
     if(view==='browse'){
       const sec=new URLSearchParams(query).get('section');
       const validSection=TOPICS.some(t=>t.sections.some(s=>s.id===sec));
-      if(validSection){ui.browseTopic=sec.split('.')[0];ui.browseSection=sec;ui.browsePage=1;}
+      if(validSection){ui.browseTopic=sec.split('.')[0];ui.browseSection=sec;ui.browsePage=1;}else{ui.browseTopic='all';ui.browseSection='all';}
     }
+    if(view==='chapter'){const n=Number(new URLSearchParams(query).get('chapter'));ui.chapterId=BOOK.some(x=>x.id===n)?n:1;}
+    if(view==='lesson'){const p=new URLSearchParams(query),sec=p.get('section');if(BOOK_SECTIONS.has(sec)){ui.lessonSection=sec;ui.chapterId=BOOK_SECTIONS.get(sec).chapter;}else view='notebook';const back=p.get('return');ui.lessonBack=['session','browse-detail','chapter'].includes(back)?back:'chapter';const q=Number(p.get('question'));ui.lessonQuestion=BY_ID.has(q)?q:null;}
+    if(view==='keypoints'){const n=Number(new URLSearchParams(query).get('topic'));ui.chapterId=BOOK.some(x=>x.id===n)?n:1;}
     if(view==='browse-detail'){
+      const section=new URLSearchParams(query).get('fromSection');
+      ui.fromSection=section&&TOPICS.some(t=>t.sections.some(s=>s.id===section))?section:null;
       if(BY_ID.has(id))ui.browseDetail=id;
       else view='browse';
     }
@@ -129,7 +153,7 @@
     if(view==='review' && (!db.session?.submitted || !db.session.order.includes(ui.reviewId)))view='results';
     if(view==='browse-detail' && !BY_ID.has(ui.browseDetail))view='browse';
     ui.view=view;
-    const detail=view==='browse-detail'?`?question=${ui.browseDetail}`:view==='review'?`?question=${ui.reviewId}`:'';
+    const detail=view==='browse-detail'?`?question=${ui.browseDetail}${ui.fromSection?'&fromSection='+ui.fromSection:''}`:view==='review'?`?question=${ui.reviewId}`:view==='chapter'?`?chapter=${ui.chapterId}`:view==='lesson'?`?section=${ui.lessonSection}&return=${ui.lessonBack}${ui.lessonQuestion?'&question='+ui.lessonQuestion:''}`:view==='keypoints'?`?topic=${ui.chapterId}`:'';
     const target='#'+view+detail;
     if(location.hash!==target)history.pushState(null,'',target);
     render();
@@ -138,7 +162,7 @@
   function setActiveNav(){
     document.querySelectorAll('[data-action="nav"]').forEach(el=>{
       const v=el.dataset.view;
-      const group=ui.view==='session'||ui.view==='results'||ui.view==='review'?(db.session?.mode==='exam'?'exam':'practice'):(ui.view==='browse-detail'?'browse':ui.view);
+      const group=ui.view==='session'||ui.view==='results'||ui.view==='review'?(db.session?.mode==='exam'?'exam':'practice'):(ui.view==='browse-detail'?'browse':['chapter','lesson','keypoints'].includes(ui.view)?'notebook':ui.view);
       el.classList.toggle('active',v===group);
       if(v===group)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
     });
@@ -152,7 +176,14 @@
   function renderHome(){
     const attempted=Object.keys(db.progress).length;
     const isActive=db.session&&!db.session.submitted;
-    return `<section class="hero">
+    return `<section class="portal-intro" aria-label="Two volumes, one study website">
+      <div class="eyebrow">IFDSM · One integrated study platform</div><h1>Notes in Dental Sleep Medicine</h1>
+      <p>Read the complete teaching chapters in Volume I, then answer the matched SBA questions in Volume II. Both are now part of this same website.</p>
+      <div class="portal-pair">
+       <a class="portal-tile" href="${WORKING_NOTEBOOK}" aria-label="Open Volume I revision notebook"><span class="portal-tile-icon" aria-hidden="true">Ⅰ</span><span><strong>Open Volume I · Study the notebook</strong><small>10 complete chapters · 78 learning sections · figures and tables</small><span class="portal-tile-go">Open Volume I →</span></span></a>
+       <a class="portal-tile" href="#practice"><span class="portal-tile-icon" aria-hidden="true">Ⅱ</span><span><strong>Volume II · SBA practice</strong><small>1,000 questions · explanations · saved progress</small><span class="portal-tile-go">Start practising →</span></span></a>
+      </div>
+    </section><section class="hero">
       <div><div class="eyebrow">Volume II · Examination revision</div>
         <h1>The Question Bank<br/><em>Dental Sleep Medicine</em></h1>
         <p class="lede">1,000 reworked clinical-style SBAs with answer justifications, and syllabus section references across all ten IFDSM competencies.</p>
@@ -176,8 +207,8 @@
       </section>
       <section class="notebook-promo" aria-label="Companion revision notebook">
         <img src="./assets/notebook-cover.webp" width="90" height="128" loading="lazy" alt="Cover of Notes in Dental Sleep Medicine — integrated final edition" />
-        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I now contains 177 carefully consolidated pages with ten teaching chapters and no duplicated condensed layer. All 78 outcomes map to the 1,000 SBA questions.</p>
-          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./notes.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener" class="btn btn-outline">Open full PDF ↗</a></div>
+        <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I is now a complete static HTML textbook: all ten chapters, 78 learning outcomes, original illustrations, tables and explanations — with direct links to the 1,000 SBAs. No PDF viewer is needed.</p>
+          <div class="notebook-promo-actions"><a href="${WORKING_NOTEBOOK}" class="btn btn-primary" aria-label="Open Volume I notebook — full HTML notes">📖 Open Volume I →</a><a href="${WORKING_NOTEBOOK}#chapters" class="btn btn-outline">Explore Notebook →</a><a href="${WORKING_NOTEBOOK}#unit-1" class="btn btn-outline">Study Chapter 1 in HTML →</a></div>
         </div>
       </section>
       <section><div class="section-head"><div><div class="eyebrow">Complete syllabus coverage</div><h2>Explore the ten topics</h2></div><button class="btn btn-small btn-outline" data-action="nav" data-view="browse" type="button">Browse all questions</button></div>
@@ -248,7 +279,7 @@
     const good=selected===q.key;
     const label=selected===null?'Unanswered question':selected===-1?'Answer revealed':good?'Correct answer':'Answer and explanation';
     return `<div class="answer-panel ${!good&&selected!==-1?'incorrect':''}"><h3>${label}: ${letters[q.key]} — ${rich(q.options[q.key])}</h3>${selected===-1&&context!=='browse'?'<p><strong>Revealed without an attempt — this question earns zero marks in the session.</strong></p>':selected===null?'<p><strong>Unanswered — this question earned zero marks in the session.</strong></p>':''}<p>${rich(q.rationale)}</p>
-      <div class="source"><a href="./notes.html#section-${encodeURIComponent(q.section)}" class="keypoints-inline-link">↗ Volume I §${safe(q.section)} — ${safe(sectionTitle(q.section))}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
+      <div class="source"><a href="${WORKING_NOTEBOOK}&fromQuestion=${q.number}#section-${encodeURIComponent(q.section)}" class="keypoints-inline-link">↗ Volume I §${safe(q.section)} — ${safe(sectionTitle(q.section))}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
     </div>`;
   }
   function renderSession(){
@@ -355,7 +386,7 @@
   function renderBrowseDetail(){
     const q=BY_ID.get(Number(ui.browseDetail));
     if(!q)return '<div class="empty">Question not found. <button data-action="nav" data-view="browse" class="btn btn-small btn-outline">Back to all questions</button></div>';
-    return `<button data-action="nav" data-view="browse" class="btn btn-small btn-outline" type="button">← Back to question list</button>
+    return `${ui.fromSection?`<a href="${WORKING_NOTEBOOK}&fromQuestion=${q.number}#section-${ui.fromSection}" class="btn btn-small btn-primary">← Return to Volume I §${ui.fromSection}</a>`:""}<button data-action="nav" data-view="browse" class="btn btn-small btn-outline" type="button">← Back to question list</button>
       <article class="question card"><div class="question-head"><span class="question-number">QUESTION ${q.number} · TOPIC ${q.topic} / §${safe(q.section)}</span><span class="tag">${safe(q.kind)}</span></div>
       <p style="color:var(--muted);font-size:12px">${safe(topicTitle(q.topic))}</p><div class="q-stem">${rich(q.stem)}</div>
       ${optionButtons(q,-1,ui.browseReveal,false,'browse')}
@@ -375,14 +406,14 @@
   }
   function renderKeypoints(){
     const query=String(location.hash||'').split('?')[1]||'';
-    const desired=Number(new URLSearchParams(query).get('topic'))||1;
+    const desired=ui.chapterId||Number(new URLSearchParams(query).get('topic'))||1;
     const data=KEYPOINTS.find(k=>k.id===desired)||KEYPOINTS[0];
     if(!data)return '<div class="empty">Keypoint data unavailable. Re-upload the entire website folder, including data/keypoints.js.</div>';
-    const m=NOTEBOOK_MAP.find(x=>x.id===data.id),pdfAt=(page)=>`${NOTEBOOK_PDF}#page=${page}`;
-    return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The revision layer for 78 syllabus learning outcomes: decisions first, details second. Select a competency; links below can take you to the full illustrated PDF or matching SBA items.')}
-      <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="./notes.html#chapter-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
+    const m=NOTEBOOK_MAP.find(x=>x.id===data.id),pdfAt=(page)=>readPDF(page,'keypoints','volume1',data.id);
+    return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The keypoints connect to complete HTML teaching chapters, clinical illustrations, tables and exactly matched SBA questions — without opening a PDF.')}
+      <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="${WORKING_NOTEBOOK}#unit-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
       <section class="keypoints-toolbar card"><div><div class="eyebrow">Select your competency</div><div class="keypoints-tabs">${KEYPOINTS.map(t=>`<a class="keypoint-tab ${t.id===data.id?'active':''}" href="#keypoints?topic=${t.id}" aria-label="Topic ${t.id}">${String(t.id).padStart(2,'0')}</a>`).join('')}</div></div>
-      <div class="keypoints-buttons"><a class="btn btn-small btn-outline" href="${pdfAt(m.key[0])}" target="_blank" rel="noopener">Open updated keypoints in PDF ↗</a><a class="btn btn-small btn-outline" href="${pdfAt(m.detail[0])}" target="_blank" rel="noopener">Detailed source chapter ↗</a></div></section>
+      <div class="keypoints-buttons"><a class="btn btn-small btn-primary" href="${WORKING_NOTEBOOK}#unit-${data.id}">Read complete Chapter ${data.id} online →</a><a class="btn btn-small btn-outline" href="${WORKING_NOTEBOOK}#chapters">All chapters →</a></div></section>
       <section class="keypoints-heading"><div class="eyebrow">TOPIC ${String(data.id).padStart(2,'0')}</div><h2>${safe(data.title)}</h2><p>${safe(data.lens)}</p></section>
       <section class="card keypoint-section"><h3>Exam-ready keypoints <span class="quiet">${data.points.length} syllabus sections</span></h3>
       ${data.points.map(p=>`<article class="keypoint-line"><span class="keypoint-code">§${safe(p.section)}</span><div><strong>${safe(sectionTitle(p.section))}</strong><p>${safe(p.text)}</p></div></article>`).join('')}</section>
@@ -395,44 +426,83 @@
       <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5337595/" target="_blank" rel="noopener">AASM adult diagnostic testing guideline (2017)</a></li>
       <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10840779/" target="_blank" rel="noopener">ATS persistent paediatric OSA guideline (2024)</a></li></ul></section>`;
   }
+  function notebookProgress(ch){
+    const ids=Q.filter(q=>q.topic===ch.id);const answered=ids.filter(q=>db.progress[q.number]).length;
+    return {answered,total:ids.length,read:ch.sections.filter(sec=>reviewedSections.includes(sec.id)).length};
+  }
+  function notebookNav(label='All chapters'){
+    return `<nav class="unified-book-nav" aria-label="Notebook navigation"><a href="#home">⌂ Home</a><a href="#notebook">← ${label}</a><a href="#practice">SBA practice</a><a href="#progress">Progress</a></nav>`;
+  }
   function renderNotebook(){
-    const pages=(a)=>`${a[0]}–${a[1]}`;
-    const pdfAt=(page)=>`${NOTEBOOK_PDF}#page=${page}`;
-    return `${pageHeading('Volume I · Clinical keypoints updated','Notes in Dental Sleep Medicine','The chaptered Volume I reader maps 78 learning outcomes to all 1,000 exact SBA questions; the original notes and full explanations remain available in the PDF.')}
-      <section class="notebook-overview card">
-        <img src="./assets/notebook-cover.webp" width="200" height="285" alt="Cover of Notes in Dental Sleep Medicine" />
-        <div class="notebook-overview-text"><div class="eyebrow">November 2026 · Clinical SBA keypoint revision</div><h2>Updated integrated revision notebook</h2>
-          <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original comprehensive teaching content preserved.</p>
-          <div class="notebook-promo-actions"><a href="./notes.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="${NOTEBOOK_PDF}" target="_blank" rel="noopener" class="btn btn-primary">Open updated PDF ↗</a><a class="btn btn-outline" href="./notes.html#chapter-1">Study chapter 1 in HTML →</a></div>
-          <p class="notebook-fineprint">The new 253-page Volume I notebook includes a clickable chapter contents page and an SBA concordance at each chapter opening. Download it into Files if your iPhone/iPad PDF viewer does not retain it offline.</p>
-        </div>
-      </section>
-      <section class="notebook-guide"><div class="section-head"><div><div class="eyebrow">Choose what to revise</div><h2>Ten competencies, three layers</h2></div></div>
-        <div class="notebook-topic-list">${NOTEBOOK_MAP.map(t=>{
-          const title=topicTitle(t.id);
-          return `<article class="notebook-topic"><div class="notebook-topic-number">${String(t.id).padStart(2,'0')}</div>
-            <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Clinical guide: pp. ${pages(t.key)} · Full explanations: pp. ${pages(t.detail)}</p>
-            <div class="notebook-topic-links"><a href="./notes.html#chapter-${t.id}">Read chapter in HTML →</a><a href="${pdfAt(t.key[0])}" target="_blank" rel="noopener">Keypoints PDF ↗</a><a href="${pdfAt(t.quick[0])}" target="_blank" rel="noopener">Original short notes ↗</a><a href="${pdfAt(t.detail[0])}" target="_blank" rel="noopener">Full explanation ↗</a></div></div></article>`}).join('')}</div>
-      </section>
-      <section class="notebook-extras"><h2>Examination quick links</h2><div class="notebook-extra-grid">
-        <a href="${pdfAt(4)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Master number tables</strong><span>Pages 4–8 · Interpret values in clinical context ↗</span></a>
-        <a href="${pdfAt(245)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Original 60-question mock</strong><span>Pages 235–239 · Original self-assessment ↗</span></a>
-        <a href="${pdfAt(250)}" target="_blank" rel="noopener" class="notebook-extra"><strong>Abbreviations & source references</strong><span>Pages 250–253 ↗</span></a>
-      </div></section>
-      <div class="notice" role="note">PDF page-jump links depend on the viewer. Some iOS PDF viewers start at page one; use the page numbers above or PDF bookmarks. The HTML keypoint pages work without a PDF viewer after the website is installed offline.</div>`;
+    if(!BOOK.length)return `<div class="empty">Notebook data is missing. Upload the complete site folder including <strong>data/notebook-chapters.js</strong>.</div>`;
+    const n=reviewedSections.length;
+    return `${notebookNav('Chapter directory')}
+      <section class="unified-notes notebook-landing"><div class="eyebrow">Volume I · Full HTML textbook</div>
+      <h1 class="page-heading">Study the revision notebook</h1>
+      <p class="page-intro">Read all the teaching content here first. Open a chapter for the full notes, diagrams and tables, then use its exact SBA links without leaving the study website.</p>
+      <div class="book-stat-grid"><div><strong>10</strong><span>Complete chapters</span></div><div><strong>78</strong><span>Learning sections</span></div><div><strong>${n} / 78</strong><span>Marked revised</span></div><div><strong>${Object.keys(db.progress).length} / 1000</strong><span>SBAs attempted</span></div></div>
+      <div class="book-search"><label for="notebook-search">Search the full notebook</label><input id="notebook-search" type="search" value="${safe(ui.notebookSearch)}" placeholder="Search concepts, sections, or chapters…" autocomplete="off"/><div id="notebook-matches"></div></div>
+      <div class="book-chapter-grid">${BOOK.map(ch=>{const p=notebookProgress(ch);return `<article class="book-chapter-card"><div class="unit-num">CHAPTER ${String(ch.id).padStart(2,'0')}</div><h3>${safe(ch.title)}</h3><p>${ch.sections.length} sections · ${p.read} revised · ${p.answered}/${p.total} SBAs attempted</p><div class="mini-progress"><span style="width:${percent(p.read,ch.sections.length)}%"></span></div><div class="book-chapter-actions"><a href="#chapter?chapter=${ch.id}" class="btn btn-small btn-primary">Read full chapter →</a><a href="#keypoints?topic=${ch.id}" class="btn btn-small btn-outline">Keypoints</a></div></article>`}).join('')}</div>
+      <div class="notebook-references"><h2>Reference sections</h2><a href="./book/reference-numbers.html">Master numerical tables</a><a href="./book/reference-mock.html">Original 60-question mock</a><a href="./book/reference-sources.html">Abbreviations and references</a></div></section>`;
+  }
+  function searchNotebook(){
+    const target=document.getElementById('notebook-matches');if(!target)return;
+    const query=ui.notebookSearch.trim().toLowerCase();
+    if(!query){target.innerHTML='<p class="muted-search">Enter a word to search the 78 full sections.</p>';return;}
+    const terms=query.split(/\s+/).filter(Boolean);
+    const matched=BOOK.flatMap(ch=>ch.sections.map(sec=>({...sec,chapter:ch.id})))
+      .filter(sec=>terms.every(t=>(sec.id+' '+sec.title+' '+sec.keypoint+' '+sec.html.replace(/<[^>]+>/g,' ')).toLowerCase().includes(t))).slice(0,30);
+    target.innerHTML=`<p class="muted-search">${matched.length} matching section${matched.length===1?'':'s'}${matched.length===30?' (first 30 shown)':''}</p><div class="note-search-results">${matched.map(sec=>`<a href="#lesson?section=${sec.id}"><strong>§${sec.id} ${safe(sec.title)}</strong><small>Chapter ${sec.chapter} · Read the full explanation →</small></a>`).join('')||'<p>No matching sections. Try another term.</p>'}</div>`;
+  }
+  function noteSectionHtml(sec){
+    const done=reviewedSections.includes(sec.id);
+    const attempts=sec.questions.filter(id=>db.progress[id]).length;
+    return `<article class="note-page" id="section-${sec.id}"><div class="pagehead"><span>LEARNING OUTCOME §${sec.id}</span><button type="button" class="savepage ${done?'saved':''}" data-action="mark-section" data-section="${sec.id}" aria-pressed="${done}">${done?'✓ Revised':'☆ Mark revised'}</button></div>
+    <h3 class="section-start">${safe(sec.title)}</h3><div class="clinical-note"><strong>Clinical keypoint</strong><p>${safe(sec.keypoint)}</p></div>
+    <div class="source-content">${sec.html}</div>
+    <section class="section-sba"><h4>Now practise §${sec.id}</h4><p>${sec.questions.length} linked SBAs · ${attempts} attempted · Each question has one best answer and a detailed justification.</p><div class="q-links">${sec.questions.map(id=>`<a href="#browse-detail?question=${id}&fromSection=${sec.id}">Q${id}${db.progress[id]?' ✓':''}</a>`).join('')}</div><a class="btn btn-small btn-primary" href="#browse?section=${sec.id}">Browse all §${sec.id} questions →</a></section>
+    <nav class="section-tools"><a href="#chapter?chapter=${sec.chapter}">↑ Chapter ${sec.chapter}</a><a href="#notebook">All chapters</a><a href="#progress">Progress</a></nav></article>`;
+  }
+  function renderChapter(){
+    const ch=BOOK.find(ch=>ch.id===ui.chapterId);
+    if(!ch)return `<div class="empty">Unknown chapter. <a href="${WORKING_NOTEBOOK}#chapters">All chapters →</a></div>`;
+    const p=notebookProgress(ch),prev=BOOK.find(x=>x.id===ch.id-1),next=BOOK.find(x=>x.id===ch.id+1);
+    return `${notebookNav('All chapters')}<div class="unified-notes">
+      <section class="chapter" id="chapter-${ch.id}"><header class="chapter-head"><div class="eyebrow">Volume I · Chapter ${String(ch.id).padStart(2,'0')}</div><h2>${safe(ch.title)}</h2><p>${ch.sections.length} learning sections · ${p.read} marked revised · ${p.answered}/${p.total} linked SBAs attempted</p></header>
+      <div class="chapter-content"><div class="text-first-banner"><strong>Full teaching is available directly on this page.</strong> Read from §${ch.sections[0].id} onward, or jump straight to a specific learning section. <a class="btn btn-small btn-primary" href="#lesson?section=${ch.sections[0].id}">Start reading §${ch.sections[0].id} →</a></div>
+      <nav class="topicmap" aria-label="Chapter contents"><h3>Chapter sections</h3><div class="lesson-directory">${ch.sections.map(sec=>`<a href="#lesson?section=${sec.id}"><strong>§${sec.id} · ${safe(sec.title)}</strong><small>Read lesson · ${sec.questions.length} related SBAs</small></a>`).join('')}</div></nav>
+
+      ${ch.sections.map(sec=>noteSectionHtml({...sec,chapter:ch.id})).join('')}
+      <nav class="chapter-bottom-nav">${prev?`<a href="#chapter?chapter=${prev.id}">← Chapter ${prev.id}</a>`:'<span></span>'}<a href="#notebook">All chapters</a>${next?`<a href="#chapter?chapter=${next.id}">Chapter ${next.id} →</a>`:''}</nav>
+      </div></section></div>`;
+  }
+  function renderLesson(){
+    const sec=BOOK_SECTIONS.get(ui.lessonSection);
+    if(!sec)return '<div class="empty">Learning section unavailable. <a href="#notebook">All chapters</a></div>';
+    const ch=BOOK.find(c=>c.id===sec.chapter), idx=ch.sections.findIndex(x=>x.id===sec.id);
+    const previous=ch.sections[idx-1],next=ch.sections[idx+1];
+    const from=ui.lessonBack==='session'&&db.session&&!db.session.submitted?'#session':ui.lessonBack==='browse-detail'&&ui.lessonQuestion?`#browse-detail?question=${ui.lessonQuestion}&fromSection=${sec.id}`:`#chapter?chapter=${ch.id}`;
+    const label=ui.lessonBack==='session'?'← Back to active SBA':ui.lessonBack==='browse-detail'?'← Back to SBA question':'← Back to chapter';
+    try{localStorage.setItem(LAST_NOTE_KEY,sec.id);}catch(e){}
+    return `${notebookNav('All chapters')}<nav class="unified-return"><a class="btn btn-small btn-outline" href="${from}">${label}</a><a href="#chapter?chapter=${ch.id}">Chapter ${ch.id}</a></nav>
+     <div class="unified-notes"><section class="chapter"><header class="chapter-head"><div class="eyebrow">Volume I · Chapter ${ch.id} · §${sec.id}</div><h2>${safe(sec.title)}</h2><p>Full teaching notes · figures, tables and linked SBA questions</p></header><div class="chapter-content">${noteSectionHtml(sec)}<nav class="chapter-bottom-nav">${previous?`<a href="#lesson?section=${previous.id}">← §${previous.id}</a>`:'<span></span>'}<a href="#chapter?chapter=${ch.id}">Chapter contents</a>${next?`<a href="#lesson?section=${next.id}">§${next.id} →</a>`:''}</nav></div></section></div>`;
   }
   function renderAbout(){
     return `${pageHeading('About this edition','About, downloads & installation','A complete standalone web version of the Dental Sleep Medicine (IFDSM) examination revision question bank.')}
       <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>160 clinician-oriented decision cases, 424 applied clinical SBAs, 369 interpretation questions and 47 focused knowledge questions; all with one best option.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving, resume after closing the browser, score breakdown and offline access after the first successful online visit.</li></ul></section>
-      <section class="card"><h3>Reference PDF books</h3><p>The revised 253-page notebook supplied for this website is available with its original cover, tables and illustrations. Use the dedicated notebook page for topic-level page references.</p>
-      <button data-action="nav" data-view="notebook" type="button" class="btn btn-small btn-outline">Browse notebook chapters →</button><p></p>
-      <a href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener">↗ Dental Sleep Medicine IFDSM — Consolidated Volume I (177 pages)</a><p></p>
-      <a href="./resources/IFDSM_Question_Bank_Author_Edition.pdf" target="_blank" rel="noopener">↗ The Question Bank — Author Edition (PDF)</a>
-      <p style="margin-top:17px;color:var(--muted)">The website and question data work without a PDF viewer; these files are additional reference material.</p></section>
+      <section class="card"><h3>Full Volume I textbook online</h3><p>All ten chapters, the original diagrams and tables, the mock paper and the references are accessible as readable HTML pages. The source PDFs below are optional downloads.</p>
+      <a href="#notebook" class="btn btn-small btn-primary">Read all textbook chapters →</a><p></p>
+      <a href="${WORKING_NOTEBOOK}#chapters">Read Volume I as HTML chapters</a><p></p>
+      <a href="./index.html#browse">Read the interactive SBA question bank</a>
+      <p style="margin-top:17px;color:var(--muted)">The website includes the complete textbook content and the question bank in HTML; these files are optional archived copies.</p></section>
       <section class="card"><h3>Add the website to your iPhone / iPad</h3><ol style="padding-left:19px;color:var(--ink-soft);font-size:13px;line-height:1.9"><li>Open your published GitHub Pages website in <strong>Safari</strong>.</li><li>Tap <strong>Share</strong> and choose <strong>Add to Home Screen</strong>.</li><li>Open the new IFDSM icon and begin studying.</li><li>Visit online once after updates to ensure the latest questions are available offline.</li></ol></section>
       <section class="card"><h3>Author and academic note</h3><p><strong>Dr. Kam O Man, Owen</strong><br/>BDS (HK) · MFDS RCSEd · MFDS RCPS (Glasg)<br/>MClinDent (Fixed and Removable Prosthodontics) (KCL)<br/>MImpDent (RCSEd) · MGDS RCSI</p>
       <p>This educational website is an independently prepared revision resource based on the accompanying notebook. It is not an official IFDSM publication, not endorsed by the examining body, and not a substitute for an individual patient assessment or current professional guidance.</p></section></div>
       <div class="callout" style="margin-top:24px"><strong>Privacy and public hosting:</strong> No sign-in, remote database, tracking or analytics are included. Answers and bookmarks are stored on your device through browser storage. GitHub Pages publishes site content publicly; do not add patient-identifiable information or other confidential material to this repository.</div>`;
+  }
+  function revisionReturnNav(){
+    const chapter = ui.view==='keypoints' ? Number(new URLSearchParams((location.hash.split('?')[1]||'')).get('topic'))||1 : 1;
+    return `<nav class="revision-return" aria-label="Revision navigation"><a href="#home">← Home</a><a href="#notebook">Notebook overview</a><a href="#notebook">All chapters</a>${ui.view==='keypoints'?`<a href="#chapter?chapter=${chapter}">Chapter ${chapter}</a>`:''}</nav>`;
   }
   function render(){
     setActiveNav();
@@ -446,11 +516,14 @@
       case 'browse':root.innerHTML=renderBrowse();renderBrowseResults();break;
       case 'browse-detail':root.innerHTML=renderBrowseDetail();break;
       case 'progress':root.innerHTML=renderProgress();break;
-      case 'notebook':root.innerHTML=renderNotebook();break;
+      case 'notebook':root.innerHTML=renderNotebook();searchNotebook();break;
+      case 'chapter':root.innerHTML=renderChapter();break;
+      case 'lesson':root.innerHTML=renderLesson();break;
       case 'keypoints':root.innerHTML=renderKeypoints();break;
       case 'about':root.innerHTML=renderAbout();break;
       default:root.innerHTML=renderHome();
     }
+    if(ui.view==='keypoints')root.innerHTML=revisionReturnNav()+root.innerHTML;
   }
   function downloadProgress(){
     const data={type:'IFDSM revision progress',version:3,bank:'ifdsm-examstyle-v2',exported_at:new Date().toISOString(),bookmarks:db.bookmarks,progress:db.progress,history:db.history,session:db.session};
@@ -462,6 +535,7 @@
     const a=btn.dataset.action;
     event.preventDefault();
     if(a==='nav'){setView(btn.dataset.view);return;}
+    if(a==='mark-section'){const sec=btn.dataset.section;if(!BOOK_SECTIONS.has(sec))return;const priorY=window.scrollY||0;reviewedSections=reviewedSections.includes(sec)?reviewedSections.filter(x=>x!==sec):[...reviewedSections,sec];try{localStorage.setItem(NOTE_KEY,JSON.stringify(reviewedSections));}catch(e){toast('Browser storage unavailable for note markers.');}render();if(window.requestAnimationFrame)window.requestAnimationFrame(()=>window.scrollTo(0,priorY));else window.scrollTo(0,priorY);return;}
     if(a==='theme'){db.theme=db.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=db.theme;persist();return;}
     if(a==='topic-quick'){ui.setupTopic=btn.dataset.id;ui.setupKind='all';ui.setupCount='20';ui.setupPool='unseen';setView('practice');return;}
     if(a==='start-session'){startSession(btn.dataset.mode);return;}
@@ -495,6 +569,7 @@
   });
   document.addEventListener('input',event=>{
     if(event.target.id==='browse-search'){ui.browseSearch=event.target.value;ui.browsePage=1;renderBrowseResults();}
+    if(event.target.id==='notebook-search'){ui.notebookSearch=event.target.value;searchNotebook();}
   });
   document.addEventListener('change',event=>{
     const el=event.target;
@@ -544,13 +619,14 @@
   });
   function followUrl(){
     const view=routeFromHash();
-    if(view!==ui.view || view==='review' || view==='browse-detail' || view==='keypoints'){
+    if(view!==ui.view || ['review','browse-detail','keypoints','chapter','lesson','notebook'].includes(view)){
       ui.view=view;render();
+      if(view!== 'session' && typeof window.scrollTo==='function')window.scrollTo(0,0);
     }
   }
-  window.addEventListener('hashchange',followUrl);
+  window.addEventListener('hashchange',()=>{if(!redirectOldNotebookHash())followUrl();});
   window.addEventListener('popstate',followUrl);
   setInterval(()=>{const el=document.getElementById('session-clock');if(el&&db.session&&!db.session.submitted)el.textContent=fmtTime(Date.now()-db.session.startedAt);},1000);
   render();
-  if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
 })();

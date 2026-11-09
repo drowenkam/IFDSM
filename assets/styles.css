@@ -14,7 +14,7 @@
   --red:#ff9a91;--red-bg:#462927;--yellow:#f0c57b;--yellow-bg:#3e3321;--shadow:0 18px 42px rgba(0,0,0,.25)
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.57 var(--font);min-width:300px}
 button,input,select{font:inherit}
 button{cursor:pointer}
@@ -271,3 +271,101 @@ h3{font-size:17px;line-height:1.3}
 @media(max-width:750px){.keypoint-cases{grid-template-columns:1fr}.keypoints-toolbar{align-items:flex-start}.keypoint-line{grid-template-columns:47px 1fr}.keypoint-case{padding:16px}}
 
 .notes-site-link{font-size:12px;font-weight:700;color:#e7f0f2;padding:8px 6px;text-decoration:none}.notes-site-link:hover{text-decoration:underline}@media(max-width:760px){.notes-site-link{display:none}}
+
+/* Always-visible notebook/keypoint return routes. */
+.revision-return{position:sticky;top:0;z-index:15;background:var(--surface,#fff);border:1px solid var(--line,#d7e0e7);border-radius:10px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;margin:0 0 17px;box-shadow:0 3px 10px #132f4912}
+.revision-return a{font-size:12px;font-weight:750;border:1px solid #b7d1d4;border-radius:7px;padding:9px 11px;display:inline-flex;align-items:center;color:#173b4c;background:#eff8f8;text-decoration:none;min-height:37px}
+.revision-return a:first-child{background:#173b4c;color:white}
+@media(max-width:700px){.revision-return{top:0;margin-top:0;padding:5px;gap:5px}.revision-return a{font-size:11px;padding:6px 8px;flex:1;justify-content:center}}
+
+.mobile-tabbar a.note-mobile-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;text-decoration:none;color:inherit;font-weight:inherit;font-size:inherit;} .mobile-tabbar a.note-mobile-link .tab-icon{display:block;}
+
+/* v23: unified notebook + SBA portal (same navigation and SPA history). */
+.portal-intro{background:linear-gradient(110deg,#eaf4f2,#f2f7fc);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,4vw,40px);margin:25px 0 30px}
+.portal-intro h1{font-size:clamp(27px,4.5vw,44px);line-height:1.14;margin:6px 0 10px;color:#143c4d}.portal-intro>p{max-width:720px;color:#3b5461}
+.portal-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:24px}
+.portal-tile{display:flex;gap:18px;align-items:center;padding:24px 20px;border:1px solid #bdd8e0;border-radius:13px;text-decoration:none;background:#fff;color:#193446;transition:box-shadow .15s ease,border-color .15s ease}
+.portal-tile:hover{border-color:#177781;box-shadow:0 8px 22px #12374718}.portal-tile-icon{font:700 36px Georgia,serif;color:#136b78;background:#eaf3f5;border-radius:10px;min-width:56px;text-align:center;padding:4px}
+.portal-tile strong,.portal-tile small,.portal-tile-go{display:block}.portal-tile strong{font-size:18px}.portal-tile small{margin:7px 0 10px;line-height:1.45;color:#5b6f7a}.portal-tile-go{font-weight:750;color:#115c67}
+.unified-book-nav{position:sticky;top:76px;z-index:20;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:9px 0;margin:0 0 14px;background:var(--paper);border-bottom:1px solid var(--line)}
+.unified-book-nav a{padding:8px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;font-weight:700;font-size:12px;text-decoration:none;color:var(--ink)}
+.unified-book-nav a:hover{border-color:var(--teal);color:var(--teal-dark)}
+.unified-return{display:flex;gap:14px;align-items:center;margin:8px 0 14px;flex-wrap:wrap}
+.unified-notes{--deep:#143b4d;--notes-teal:#145f70;--notes-line:#d3e1e7;line-height:1.66;max-width:100%;overflow-wrap:break-word}
+.unified-notes .book-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}
+.unified-notes .book-stat-grid>div{background:var(--surface);border:1px solid var(--line);padding:18px;border-radius:12px;display:flex;flex-direction:column;gap:4px}
+.unified-notes .book-stat-grid strong{font-size:27px;color:var(--teal-dark)}.unified-notes .book-stat-grid span{font-size:12px;color:var(--muted)}
+.unified-notes .book-search{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:20px;margin:20px 0}
+.unified-notes .book-search label{display:block;font-weight:750;margin-bottom:6px}
+.unified-notes .book-search input{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:var(--paper)}
+.unified-notes .muted-search{font-size:12px;color:var(--muted);margin:9px 0 0}
+.unified-notes .note-search-results{max-height:340px;overflow-y:auto;display:grid;gap:4px}
+.unified-notes .note-search-results a{padding:10px;display:block;border-bottom:1px solid var(--line);text-decoration:none}
+.unified-notes .note-search-results strong,.unified-notes .note-search-results small{display:block}.unified-notes .note-search-results small{color:var(--muted)}
+.unified-notes .book-chapter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:20px 0 32px}
+.unified-notes .book-chapter-card{border:1px solid var(--line);background:var(--surface);padding:22px;border-radius:14px;min-width:0}
+.unified-notes .book-chapter-card h3{font-size:18px;line-height:1.32;margin:8px 0}.unified-notes .book-chapter-card p{color:var(--muted);font-size:12px}
+.unified-notes .book-chapter-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+.unified-notes .unit-num{font-size:11px;letter-spacing:.09em;font-weight:800;color:var(--teal-dark)}
+.unified-notes .notebook-references{display:flex;flex-wrap:wrap;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.unified-notes .notebook-references h2{flex-basis:100%;margin:0;font-size:17px}
+.unified-notes .chapter{border:1px solid var(--line);background:var(--surface);border-radius:14px;overflow:hidden;margin:14px 0 28px}
+.unified-notes .chapter-head{background:#143b4d;color:#fff;padding:24px}
+.unified-notes .chapter-head h2{font-size:clamp(23px,3vw,34px);line-height:1.22;margin:6px 0 7px}
+.unified-notes .chapter-head p{font-size:13px;color:#dce7ec;margin:0}
+.unified-notes .chapter-content{padding:clamp(14px,2.5vw,30px)}
+.unified-notes .text-first-banner{border:1px solid #b9d7de;background:#f0f7f9;border-radius:8px;padding:14px 18px;color:#164254;margin-bottom:20px}
+.unified-notes .topicmap{background:#f4f8f6;border:1px solid var(--line);padding:18px;border-radius:10px;color:#243e42}
+.unified-notes .topicmap h3{font-size:18px;margin:0 0 14px}
+.unified-notes .lesson-directory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.unified-notes .lesson-directory a{padding:11px 13px;background:#fff;border:1px solid #c9dcdb;border-radius:8px;text-decoration:none;color:#1a515e}
+.unified-notes .lesson-directory strong,.unified-notes .lesson-directory small{display:block}
+.unified-notes .lesson-directory strong{font-size:13px}.unified-notes .lesson-directory small{font-size:11px;color:#55717c}
+.unified-notes .chapter-keypoints{background:#fff8e9;border:1px solid #ecdfbd;border-radius:9px;padding:18px 20px;margin:22px 0;color:#263943}
+.unified-notes .chapter-keypoints h3{margin:0 0 10px}.unified-notes .chapter-keypoints ul{margin:0;padding-left:21px}.unified-notes .chapter-keypoints li{margin:9px 0;font-size:14px}
+.unified-notes .note-page{padding:28px 0;border-bottom:1px solid var(--line);scroll-margin-top:132px;overflow-wrap:anywhere}
+.unified-notes .note-page:last-of-type{border-bottom:0}
+.unified-notes .pagehead{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:#1c6876;letter-spacing:.07em;font-weight:800}
+.unified-notes .savepage{background:#fff;border:1px solid #abc8cb;color:#24525b;border-radius:8px;padding:7px 11px;font-size:12px;cursor:pointer}
+.unified-notes .savepage.saved{background:#e7f5ee;color:#176449}
+.unified-notes .section-start{font-size:clamp(21px,2.5vw,27px);margin:14px 0 12px;color:#173e4f}
+.unified-notes .clinical-note{background:#eaf3f5;border-left:4px solid #16728b;padding:14px 18px;border-radius:6px;margin:10px 0 20px;color:#203f49}
+.unified-notes .clinical-note strong{color:#16465c;display:block;font-size:12px;letter-spacing:.055em;text-transform:uppercase}
+.unified-notes .clinical-note p{margin:4px 0;font-size:14px}
+.unified-notes .source-content{font-size:15px;line-height:1.75;overflow-wrap:break-word;hyphens:auto}
+.unified-notes .source-content h3,.unified-notes .source-content h4{color:var(--teal-dark);line-height:1.34;margin:23px 0 9px}
+.unified-notes .source-content p{margin:11px 0;max-width:83ch}
+.unified-notes .source-content .study-label{font-weight:800;color:#1c6070;letter-spacing:.06em}
+.unified-notes .source-content .note-highlight{background:#edf5f5;border-left:3px solid #16728b;padding:9px 14px}
+.unified-notes .source-content ul,.unified-notes .source-content ol{padding-left:22px}
+.unified-notes .source-content li{margin:6px 0}
+.unified-notes .source-content .study-table-scroll,.unified-notes .source-content .note-table-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #dce6eb;border-radius:8px;margin:14px 0}
+.unified-notes .source-content table{border-collapse:collapse;width:100%;min-width:520px;font-size:13px;line-height:1.48;color:#1b323d}
+.unified-notes .source-content th{background:#e8f1f4;text-align:left;color:#173f50}
+.unified-notes .source-content td,.unified-notes .source-content th{border:1px solid #d9e4e8;padding:8px 11px;vertical-align:top}
+.unified-notes .source-content blockquote{border-left:4px solid #168095;background:#eff6f7;margin:12px 0;padding:10px 16px}
+.unified-notes .source-content .study-figure{text-align:center;margin:24px auto}
+.unified-notes .source-content .study-figure img{max-width:100%;height:auto;width:auto;display:block;margin:auto;border-radius:6px}
+.unified-notes .source-content .study-figure figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+.unified-notes .section-sba{background:#edf5f7;border:1px solid #cedfe5;border-radius:10px;padding:16px;margin:24px 0 14px;color:#203a46}
+.unified-notes .section-sba h4{color:#185169;margin:0 0 7px;font-size:17px}.unified-notes .section-sba p{font-size:13px}
+.unified-notes .q-links{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.unified-notes .q-links a{font-size:12px;background:#fff;border:1px solid #b3cdd3;padding:5px 9px;border-radius:6px;text-decoration:none;color:#135e68}
+.unified-notes .section-tools,.unified-notes .chapter-bottom-nav{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;border-top:1px solid var(--line);padding-top:15px;font-size:12px;font-weight:700}
+.unified-notes .chapter-bottom-nav{margin-top:24px}
+:root[data-theme='dark'] .portal-intro{background:#142d3a;border-color:#385667}:root[data-theme='dark'] .portal-intro h1{color:#eef4f7}:root[data-theme='dark'] .portal-intro>p{color:#c4d8df}:root[data-theme='dark'] .portal-tile{background:#1d3541;color:#edf7fb;border-color:#345967}:root[data-theme='dark'] .portal-tile small{color:#bdd0da}
+:root[data-theme='dark'] .unified-notes .chapter-content,:root[data-theme='dark'] .unified-notes .chapter{background:var(--surface)}
+@media(max-width:760px){.portal-pair,.unified-notes .book-chapter-grid,.unified-notes .lesson-directory{grid-template-columns:1fr}.unified-notes .book-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.unified-book-nav{top:65px}.unified-notes .source-content table{min-width:460px}}
+@media(max-width:460px){.portal-tile{padding:14px}.portal-tile-icon{font-size:25px;min-width:43px}.unified-book-nav{top:61px;overflow-x:auto;flex-wrap:nowrap;white-space:nowrap}.unified-notes .chapter-head{padding:16px}.unified-notes .source-content{font-size:14px}}
+
+/* Consistent legibility of medical tables and teaching prose in dark mode. */
+:root[data-theme='dark'] .unified-notes .chapter-content{background:#fff;color:#203742}
+:root[data-theme='dark'] .unified-notes .note-page{color:#203742}
+.unified-notes .text-first-banner .btn{display:inline-block;margin:8px 0 0 8px}
+
+/* v24: genuine notebook navigation anchors, not JavaScript-only navigation buttons. */
+.header-nav a.notes-header-link{display:inline-flex;align-items:center;color:#d9e4ed;padding:11px 13px;border-radius:10px;font-size:13px;font-weight:650;white-space:nowrap;text-decoration:none}
+.header-nav a.notes-header-link:hover,.header-nav a.notes-header-link:focus-visible{color:#fff;background:rgba(255,255,255,.13)}
+.mobile-tabbar a.note-mobile-link{flex:1;min-height:50px;padding:4px 0;font-size:10px;font-weight:700;color:var(--muted)}
+.mobile-tabbar a.note-mobile-link:hover,.mobile-tabbar a.note-mobile-link:focus-visible{color:var(--teal-dark)}
+@media(min-width:681px) and (max-width:970px){.header-nav a.notes-header-link{padding:10px 8px;font-size:12px}}

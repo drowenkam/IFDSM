@@ -1,1 +1,60 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0; url=../notes.html?v=21#chapters"><title>IFDSM Volume I — Full HTML Chapter Reader</title></head><body style="font:16px system-ui;padding:2rem"><h1>IFDSM Volume I</h1><p><a href="../notes.html?v=21#chapters">Open full chapter reader</a></p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#11263d" />
+  <meta name="description" content="Integrated IFDSM study website: Volume I complete Dental Sleep Medicine lessons and Volume II 1,000 linked SBA questions, scoring and progress." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="IFDSM Study" />
+  <meta property="og:title" content="IFDSM • Notes & SBA Study" />
+  <meta property="og:description" content="1,000 single-best-answer questions, clinical cases and justifications for Dental Sleep Medicine revision." />
+  <title>IFDSM | Revision Notebook & SBA Practice</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/icon.svg" />
+  <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./assets/styles.css?v=24" />
+  <script defer src="./data/questions.js"></script>
+  <script defer src="./data/keypoints.js"></script>
+  <script defer src="./data/notebook-chapters.js"></script>
+  <script defer src="./assets/app.js?v=24"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-app">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="#home" class="brand" aria-label="IFDSM integrated study home">
+          <span class="brand-mark">I·II</span>
+          <span class="brand-words"><strong>Notes in Dental Sleep Medicine</strong><small>FULL NOTEBOOK + 1,000 SBA QUESTIONS</small></span>
+        </a>
+        <nav class="header-nav" aria-label="Main navigation">
+          <button data-action="nav" data-view="home" type="button">Home</button>
+          <a class="notes-header-link" href="https://drowenkam.github.io/IFDSM/notes.html?v=21#chapters">Study notebook</a>
+          <button data-action="nav" data-view="practice" type="button">SBA practice</button>
+          <button data-action="nav" data-view="exam" type="button">Mock exam</button>
+          <button data-action="nav" data-view="browse" type="button">Browse all</button>
+          <button data-action="nav" data-view="progress" type="button">Progress</button>
+        </nav>
+        <button class="theme-button" data-action="theme" type="button" title="Toggle light and dark appearance" aria-label="Toggle dark mode">◐</button>
+      </div>
+    </header>
+    <main id="main-app" class="app container" tabindex="-1">
+      <div class="loading">Opening the IFDSM study platform… <a href="https://drowenkam.github.io/IFDSM/notes.html?v=21">Open Volume I directly</a></div>
+    </main>
+    <footer class="site-footer container">
+      <div><strong>Dental Sleep Medicine · IFDSM</strong><span>Independent examination revision resource · Dr. Kam O Man, Owen</span></div>
+      <button data-action="nav" data-view="about" class="footer-link" type="button">About, downloads & installation</button>
+    </footer>
+  </div>
+  <nav class="mobile-tabbar" aria-label="Mobile navigation">
+    <button data-action="nav" data-view="home" type="button"><span class="tab-icon">⌂</span>Home</button>
+    <a class="note-mobile-link" href="https://drowenkam.github.io/IFDSM/notes.html?v=21#chapters"><span class="tab-icon">▤</span>Notes</a>
+    <button data-action="nav" data-view="practice" type="button"><span class="tab-icon">◎</span>SBA</button>
+    <button data-action="nav" data-view="exam" type="button"><span class="tab-icon">◷</span>Exam</button>
+    <button data-action="nav" data-view="progress" type="button"><span class="tab-icon">▥</span>Progress</button>
+  </nav>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
