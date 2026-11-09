@@ -8,7 +8,7 @@
 .reader-frame{width:100%;height:calc(100dvh - 172px);min-height:360px;border:0;background:white;display:block}.reader-help{font-size:12px;color:#4e6676;margin:0;padding:6px 14px;background:#fff;line-height:1.45}.sr-only{position:absolute;left:-9999px}
 @media(max-width:700px){.reader-header{padding:8px 9px}.reader-nav{gap:5px}.reader-nav a,.reader-nav button{font-size:11px;min-height:38px;padding:6px 7px;flex:1}.reader-nav a.back{flex:1.6}.reader-title{font-size:11px;margin-top:6px}.reader-toolbar{padding:6px 9px;gap:5px}.reader-toolbar button{font-size:12px;padding:7px}.reader-toolbar small{font-size:10px}.reader-frame{height:calc(100dvh - 220px)}.reader-help{font-size:11px;padding:5px 10px}}
 </style></head><body>
-<header class="reader-header"><nav class="reader-nav" aria-label="PDF reader navigation"><a id="reader-back" class="back" href="./index.html#notebook">← Back to Notebook</a><a href="./notes.html#contents" class="primary">☷ All chapters</a><a href="./index.html#home">⌂ Home</a><a href="./index.html#browse">◎ SBA Bank</a></nav><div class="reader-title" id="reader-title">IFDSM Volume I · PDF reader</div></header>
+<header class="reader-header"><nav class="reader-nav" aria-label="PDF reader navigation"><a id="reader-back" class="back" href="./index.html#notebook">← Back to Notebook</a><a href="./volume1.html#contents" class="primary">☷ All chapters</a><a href="./index.html#home">⌂ Home</a><a href="./index.html#browse">◎ SBA Bank</a></nav><div class="reader-title" id="reader-title">IFDSM Volume I · PDF reader</div></header>
 <div class="reader-toolbar" aria-label="PDF page controls"><button id="page-prev" type="button" aria-label="Previous PDF page">← Page</button><label for="page-number">Page</label><input type="number" inputmode="numeric" id="page-number" min="1" step="1" value="1"><span id="page-total" aria-live="polite">of 177</span><button id="page-go" type="button">Go</button><button id="page-next" type="button" aria-label="Next PDF page">Next →</button><span class="spacer"></span><a id="reader-original" href="./resources/IFDSM_Integrated_Revision_Notebook.pdf" target="_blank" rel="noopener" style="font-size:12px">Open PDF separately ↗</a></div>
 <iframe class="reader-frame" id="reader-frame" title="IFDSM revision PDF document" loading="eager" referrerpolicy="same-origin"></iframe>
 <p class="reader-help">The return buttons stay in this reader. If your iPhone or iPad does not display an embedded PDF fully, select “Open PDF separately”; your reader remains available to return to. For reliable offline PDF reading, save the file to Files; an embedded PDF may not be cached for offline use.</p>
@@ -21,7 +21,7 @@ const numeric=(x,lo,hi)=>Number.isInteger(+x)&&+x>=lo&&+x<=hi?+x:null;
 const origin=p.get('from')||'',topic=numeric(p.get('topic'),1,10)||1,chapter=numeric(p.get('chapter'),0,10),section=p.get('section'),safeSection=/^(10|[1-9])\.([1-9]|10|11|12)$/.test(section||'')?section:null;
 let back='./index.html#notebook',backText='← Back to Notebook';
 if(origin==='notes'){
-  back='./notes.html#'+(safeSection?'section-'+safeSection:chapter===0?'contents':chapter?'chapter-'+chapter:'contents');backText='← Back to Volume I';
+  back='./volume1.html#'+(safeSection?'section-'+safeSection:chapter===0?'contents':chapter?'chapter-'+chapter:'contents');backText='← Back to Volume I';
 }else if(origin==='keypoints'){
   back='./index.html#keypoints?topic='+topic;backText='← Back to Keypoints';
 }else if(['home','notebook','about','results','progress','browse','session'].includes(origin)){

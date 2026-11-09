@@ -1,3 +1,19 @@
+# IFDSM Volume I Full HTML Reader — Visible Teaching Edition
+
+**Revision 12 (9 November 2026):** The primary study page is `volume1.html`. ALL 78 detailed lessons are displayed directly inside their 10 chapters; users do **not** need to click a PDF or expand hidden accordions. Each section presents a clinical keypoint, the complete teaching explanation with figures/tables, then linked SBA questions. Original PDF remains optional.
+
+To update GitHub Pages, upload the contents of this folder, keeping `index.html`, `volume1.html`, `notes.html`, `assets/`, `data/`, and `sw.js` at the repository root. Open the site online and reload twice if an old Home Screen installation is cached; use the new **Volume I Full Chapters** link. Existing SBA question data and progress storage keys are unchanged.
+
+## Important revision behaviour
+
+- Open `volume1.html#contents`, choose any chapter, then scroll to read the complete lesson.
+- Use section navigation to jump to §1.1 through §10.6. No hidden accordions.
+- Under each lesson, use the exact SBA IDs to practise. Return to the lesson using the SBA explanation link or browser Back.
+- The site includes the source 38 figures and 105 recreated tables. Some source PDF line-break artifacts may remain and should be checked against the original before clinical use.
+- The HTML and JS are cached for offline use after an initial online visit. The large reference PDFs may not be available offline until separately opened.
+
+---
+
 # IFDSM — Dental Sleep Medicine | Full HTML Volume I + 1,000 SBA Questions
 
 GitHub Pages-ready website, prepared for **Dr. Kam O Man, Owen**. Independent revision material, not an official IFDSM publication.

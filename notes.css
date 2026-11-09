@@ -30,3 +30,31 @@
 .source-table-text{font-size:13px;color:#435a6a;background:#f5f8fa;padding:6px 9px;margin:2px 0}.reference-body{padding:22px}.muted-note{font-size:12px;color:var(--muted)}
 .section-card{scroll-margin-top:118px}.section-index a{transition:background .15s}.section-index a:hover{background:#e4f2f3}.reader-quicknav{z-index:14}.reader-intro .btn{white-space:normal}
 @media(max-width:700px){.sticky-study-actions{top:47px;gap:6px}.sticky-study-actions .btn{font-size:10px;padding:7px 8px;flex:1}.study-section-head{display:block}.read-toggle{margin-bottom:12px}.study-body{padding:15px 12px;font-size:15px;line-height:1.67}.study-table{font-size:12px}.section-card{scroll-margin-top:118px}.study-details>summary{align-items:flex-start}.detail-indicator{font-size:10px}.study-figure img{max-height:none}}
+
+/* 2026-11: direct-read Volume I - no hidden details, no PDF dependency. */
+.study-visible-lesson{display:block!important;visibility:visible!important;margin:16px 0 20px;border:1px solid #dbe7e9;border-radius:11px;overflow:hidden;background:#fff}
+.lesson-ribbon{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eef5f5;border-bottom:1px solid #dbe6e7;padding:11px 16px;flex-wrap:wrap}
+.lesson-label{font-weight:850;color:#1c5866;letter-spacing:.08em;font-size:11px}
+.lesson-length{color:#637887;font-size:11px}
+.study-visible-lesson>.study-body{padding:20px 20px 16px;font-size:15px;line-height:1.72;color:#253d4d}
+.study-visible-lesson .study-body h3,.study-visible-lesson .study-body h4{margin-top:24px;color:#143852}
+.study-visible-lesson .study-body p{max-width:80ch}
+.study-visible-lesson .study-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;margin:15px 0}
+.study-visible-lesson .study-table{width:100%;border-collapse:collapse}
+.study-visible-lesson .study-figure{max-width:100%;margin:20px 0}
+.study-visible-lesson .study-figure img{max-width:100%;height:auto;object-fit:contain}
+.section-index .index-help{margin:4px 5px 12px;color:#506879;line-height:1.55;font-size:13px}
+.keypoint-callout{border-left:4px solid #19818a;background:#edf7f7}
+.section-card{padding:26px 29px;margin-bottom:23px}
+.section-card .qbar{margin-top:18px;border-top:2px solid #d5e6e7;padding-top:16px}
+.section-card .qlinks{margin:12px 0}
+.section-card .section-actions{border-top:1px solid #e3edef;padding-top:14px}
+.study-error{color:#a23021;font-weight:bold}
+@media(max-width:700px){.section-card{padding:18px 15px;margin-bottom:17px}.study-visible-lesson>.study-body{padding:15px 12px;font-size:15px;line-height:1.72}.lesson-ribbon{padding:10px 12px}.section-index{padding:14px}}
+
+/* Mobile reference tables: clear cue when additional columns extend sideways. */
+@media(max-width:700px){
+ .study-visible-lesson .study-table-scroll::before{content:"↔ Swipe sideways to see all columns";display:block;font-size:11px;font-weight:750;color:#176b77;padding:8px 10px;background:#edf5f5;border:1px solid #d3e3e5;border-radius:7px 7px 0 0;white-space:normal}
+ .study-visible-lesson .study-table{min-width:560px}
+ .study-visible-lesson .study-table th,.study-visible-lesson .study-table td{overflow-wrap:anywhere}
+}

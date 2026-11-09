@@ -1,11 +1,20 @@
-PASS All 10 chapters, 78 learning outcomes and exactly 1,000 question links remain
-PASS Every syllabus section contains substantive full teaching notes from original companion
-PASS All 38 source illustrations embedded as website assets, no figure points to a PDF
-PASS Semantic tables, full definitions and footnoted source references retained
-PASS Master numbers, 60-question mock, bibliography/abbreviations read as HTML
-PASS Volume I online chapter HTML is primary, PDF is optional
-PASS All question answer keys and progress key preserved
-PASS Offline service worker pre-caches full notes and every chapter illustration
-PASS All ten sections have previous/next and all chapters navigation available
-PASS No generated individual per-page HTML proliferation
-SUMMARY 10 passed, 0 failed
+PASS 10 chapters and 78 independently readable teaching sections
+PASS All 1000 question links and original answer keys kept
+PASS Figures and tables remain inline HTML assets
+PASS Full reading data has substantive content in each section
+PASS New HTML reader loads versioned JS/CSS and data assets
+PASS Contents index renders ten chapter links
+PASS Chapter 1 displays 12 lessons in full before SBAs
+PASS Chapter 2 displays 7 lessons in full before SBAs
+PASS Chapter 3 displays 11 lessons in full before SBAs
+PASS Chapter 4 displays 8 lessons in full before SBAs
+PASS Chapter 5 displays 10 lessons in full before SBAs
+PASS Chapter 6 displays 6 lessons in full before SBAs
+PASS Chapter 7 displays 4 lessons in full before SBAs
+PASS Chapter 8 displays 10 lessons in full before SBAs
+PASS Chapter 9 displays 4 lessons in full before SBAs
+PASS Chapter 10 displays 6 lessons in full before SBAs
+PASS All website navigation points to new reader
+PASS Offline worker installs fresh versioned assets
+PASS Existing SBA data and local storage key unchanged
+TOTAL: 19 checks

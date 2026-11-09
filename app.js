@@ -178,7 +178,7 @@
       <section class="notebook-promo" aria-label="Companion revision notebook">
         <img src="./assets/notebook-cover.webp" width="90" height="128" loading="lazy" alt="Cover of Notes in Dental Sleep Medicine — integrated final edition" />
         <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I is now a complete web-readable textbook: all ten chapters, 78 learning outcomes, original illustrations, tables and explanations — with direct links to the 1,000 SBAs. No PDF viewer is needed.</p>
-          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./notes.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./notes.html#chapter-1" class="btn btn-outline">Read full Chapter 1 online →</a></div>
+          <div class="notebook-promo-actions"><button data-action="nav" data-view="notebook" class="btn btn-primary" type="button">Explore notebook →</button><a href="./volume1.html#contents" class="btn btn-outline">Volume I chapters →</a><a href="./volume1.html#chapter-1" class="btn btn-outline">Read full Chapter 1 online →</a></div>
         </div>
       </section>
       <section><div class="section-head"><div><div class="eyebrow">Complete syllabus coverage</div><h2>Explore the ten topics</h2></div><button class="btn btn-small btn-outline" data-action="nav" data-view="browse" type="button">Browse all questions</button></div>
@@ -249,7 +249,7 @@
     const good=selected===q.key;
     const label=selected===null?'Unanswered question':selected===-1?'Answer revealed':good?'Correct answer':'Answer and explanation';
     return `<div class="answer-panel ${!good&&selected!==-1?'incorrect':''}"><h3>${label}: ${letters[q.key]} — ${rich(q.options[q.key])}</h3>${selected===-1&&context!=='browse'?'<p><strong>Revealed without an attempt — this question earns zero marks in the session.</strong></p>':selected===null?'<p><strong>Unanswered — this question earned zero marks in the session.</strong></p>':''}<p>${rich(q.rationale)}</p>
-      <div class="source"><a href="./notes.html?from=${ui.view==='session'?'session':ui.view==='review'?'results':'question-'+q.number}#section-${encodeURIComponent(q.section)}" class="keypoints-inline-link">↗ Volume I §${safe(q.section)} — ${safe(sectionTitle(q.section))}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
+      <div class="source"><a href="./volume1.html?from=${ui.view==='session'?'session':ui.view==='review'?'results':'question-'+q.number}#section-${encodeURIComponent(q.section)}" class="keypoints-inline-link">↗ Volume I §${safe(q.section)} — ${safe(sectionTitle(q.section))}</a><br/><strong>Notebook reference:</strong> ${safe(q.source||('Topic '+q.topic+' · §'+q.section))} · <strong>Learning outcome:</strong> §${safe(q.section)} (${safe(sectionTitle(q.section))})</div>
     </div>`;
   }
   function renderSession(){
@@ -381,9 +381,9 @@
     if(!data)return '<div class="empty">Keypoint data unavailable. Re-upload the entire website folder, including data/keypoints.js.</div>';
     const m=NOTEBOOK_MAP.find(x=>x.id===data.id),pdfAt=(page)=>readPDF(page,'keypoints','volume1',data.id);
     return `${pageHeading('Volume I · Clinical revision','SBA clinical keypoints','The keypoints connect to complete HTML teaching chapters, clinical illustrations, tables and exactly matched SBA questions — without opening a PDF.')}
-      <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="./notes.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
+      <div class="notice"><strong>Volume I is now organised by chapters.</strong> <a href="./volume1.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Open Chapter ${data.id} with all exact SBA links →</a></div>
       <section class="keypoints-toolbar card"><div><div class="eyebrow">Select your competency</div><div class="keypoints-tabs">${KEYPOINTS.map(t=>`<a class="keypoint-tab ${t.id===data.id?'active':''}" href="#keypoints?topic=${t.id}" aria-label="Topic ${t.id}">${String(t.id).padStart(2,'0')}</a>`).join('')}</div></div>
-      <div class="keypoints-buttons"><a class="btn btn-small btn-primary" href="./notes.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Read complete Chapter ${data.id} online →</a><a class="btn btn-small btn-outline" href="./notes.html#contents">All chapters →</a></div></section>
+      <div class="keypoints-buttons"><a class="btn btn-small btn-primary" href="./volume1.html?from=keypoints&topic=${data.id}#chapter-${data.id}">Read complete Chapter ${data.id} online →</a><a class="btn btn-small btn-outline" href="./volume1.html#contents">All chapters →</a></div></section>
       <section class="keypoints-heading"><div class="eyebrow">TOPIC ${String(data.id).padStart(2,'0')}</div><h2>${safe(data.title)}</h2><p>${safe(data.lens)}</p></section>
       <section class="card keypoint-section"><h3>Exam-ready keypoints <span class="quiet">${data.points.length} syllabus sections</span></h3>
       ${data.points.map(p=>`<article class="keypoint-line"><span class="keypoint-code">§${safe(p.section)}</span><div><strong>${safe(sectionTitle(p.section))}</strong><p>${safe(p.text)}</p></div></article>`).join('')}</section>
@@ -404,7 +404,7 @@
         <img src="./assets/notebook-cover.webp" width="200" height="285" alt="Cover of Notes in Dental Sleep Medicine" />
         <div class="notebook-overview-text"><div class="eyebrow">November 2026 · Clinical SBA keypoint revision</div><h2>Updated integrated revision notebook</h2>
           <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original comprehensive teaching content preserved.</p>
-          <div class="notebook-promo-actions"><a href="./notes.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="./notes.html#reference-numbers" class="btn btn-outline">Master numbers online →</a><a class="btn btn-outline" href="./notes.html#chapter-1">Study chapter 1 in HTML →</a></div>
+          <div class="notebook-promo-actions"><a href="./volume1.html#contents" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="./volume1.html#reference-numbers" class="btn btn-outline">Master numbers online →</a><a class="btn btn-outline" href="./volume1.html#chapter-1">Study chapter 1 in HTML →</a></div>
           <p class="notebook-fineprint">Read all sections, original diagrams and tables in the website itself. The PDF is kept only as an optional archival download.</p>
         </div>
       </section>
@@ -413,12 +413,12 @@
           const title=topicTitle(t.id);
           return `<article class="notebook-topic"><div class="notebook-topic-number">${String(t.id).padStart(2,'0')}</div>
             <div class="notebook-topic-content"><h3>${safe(title)}</h3><p>Full teaching text, clinical keypoints, figures, tables and section-specific SBA links.</p>
-            <div class="notebook-topic-links"><a href="./notes.html#chapter-${t.id}">Read chapter in HTML →</a><a href="./notes.html#chapter-${t.id}">Full chapter text →</a><a href="./notes.html#chapter-${t.id}">Clinical SBA links →</a></div></div></article>`}).join('')}</div>
+            <div class="notebook-topic-links"><a href="./volume1.html#chapter-${t.id}">Read chapter in HTML →</a><a href="./volume1.html#chapter-${t.id}">Full chapter text →</a><a href="./volume1.html#chapter-${t.id}">Clinical SBA links →</a></div></div></article>`}).join('')}</div>
       </section>
       <section class="notebook-extras"><h2>Examination quick links</h2><div class="notebook-extra-grid">
-        <a href="./notes.html#reference-numbers" class="notebook-extra"><strong>Master number tables</strong><span>Read thresholds and tables on this website →</span></a>
-        <a href="./notes.html#reference-mock" class="notebook-extra"><strong>Original 60-question mock</strong><span>Read the 60 questions and answer key online →</span></a>
-        <a href="./notes.html#reference-sources" class="notebook-extra"><strong>Abbreviations &amp; source references</strong><span>Read references in HTML →</span></a>
+        <a href="./volume1.html#reference-numbers" class="notebook-extra"><strong>Master number tables</strong><span>Read thresholds and tables on this website →</span></a>
+        <a href="./volume1.html#reference-mock" class="notebook-extra"><strong>Original 60-question mock</strong><span>Read the 60 questions and answer key online →</span></a>
+        <a href="./volume1.html#reference-sources" class="notebook-extra"><strong>Abbreviations &amp; source references</strong><span>Read references in HTML →</span></a>
       </div></section>
       <div class="notice" role="note">All full chapters are now web pages. You can read the text, diagrams and tables without opening the PDF; download the PDF only if you want a separate copy.</div>`;
   }
@@ -426,7 +426,7 @@
     return `${pageHeading('About this edition','About, downloads & installation','A complete standalone web version of the Dental Sleep Medicine (IFDSM) examination revision question bank.')}
       <div class="about-grid"><section class="card"><h3>What is included</h3><ul><li>1,000 five-option single-best-answer questions.</li><li>160 clinician-oriented decision cases, 424 applied clinical SBAs, 369 interpretation questions and 47 focused knowledge questions; all with one best option.</li><li>Answer justification and reference to one of 78 syllabus sections.</li><li>Study mode, mock examinations, searchable bank, bookmarks and personal progress.</li><li>Automatic local saving, resume after closing the browser, score breakdown and offline access after the first successful online visit.</li></ul></section>
       <section class="card"><h3>Full Volume I textbook online</h3><p>All ten chapters, the original diagrams and tables, the mock paper and the references are accessible as readable HTML pages. The source PDFs below are optional downloads.</p>
-      <a href="./notes.html#contents" class="btn btn-small btn-primary">Read all textbook chapters →</a><p></p>
+      <a href="./volume1.html#contents" class="btn btn-small btn-primary">Read all textbook chapters →</a><p></p>
       <a href="./reader.html?doc=volume1&from=about">↗ Dental Sleep Medicine IFDSM — Consolidated Volume I (177 pages)</a><p></p>
       <a href="./reader.html?doc=questions&from=about">↗ The Question Bank — Author Edition (PDF)</a>
       <p style="margin-top:17px;color:var(--muted)">The website includes the complete textbook content and the question bank in HTML; these files are optional archived copies.</p></section>
@@ -437,7 +437,7 @@
   }
   function revisionReturnNav(){
     const chapter = ui.view==='keypoints' ? Number(new URLSearchParams((location.hash.split('?')[1]||'')).get('topic'))||1 : 1;
-    return `<nav class="revision-return" aria-label="Revision navigation"><a href="#home">← Home</a><a href="#notebook">Notebook overview</a><a href="./notes.html#contents">All chapters</a>${ui.view==='keypoints'?`<a href="./notes.html#chapter-${chapter}">Chapter ${chapter}</a>`:''}</nav>`;
+    return `<nav class="revision-return" aria-label="Revision navigation"><a href="#home">← Home</a><a href="#notebook">Notebook overview</a><a href="./volume1.html#contents">All chapters</a>${ui.view==='keypoints'?`<a href="./volume1.html#chapter-${chapter}">Chapter ${chapter}</a>`:''}</nav>`;
   }
   function render(){
     setActiveNav();

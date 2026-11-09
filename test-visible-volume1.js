@@ -1,0 +1,27 @@
+'use strict';
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
+const root=path.resolve(__dirname,'..'); const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+let count=0;const check=(desc,fn)=>{fn();count++;console.log('PASS',desc)};
+const local={};
+const C={window:{},URLSearchParams,console,localStorage:{getItem(k){return local[k]||null},setItem(k,v){local[k]=v}},requestAnimationFrame:()=>{}};
+for(const f of ['data/chapters.js','data/full_notes-v12.js','data/questions.js'])vm.runInNewContext(read(f),C,{filename:f});
+const chapters=C.window.IFDSM_CHAPTERS,full=C.window.IFDSM_FULL_NOTES,questions=C.window.IFDSM_QUESTIONS;
+check('10 chapters and 78 independently readable teaching sections',()=>{assert.equal(chapters.length,10);assert.equal(Object.keys(full.sections).length,78);assert.equal(chapters.flatMap(c=>c.sections).length,78)});
+check('All 1000 question links and original answer keys kept',()=>{const ids=chapters.flatMap(c=>c.sections.flatMap(s=>s.question_ids));assert.equal(ids.length,1000);assert.equal(new Set(ids).size,1000);assert.equal(questions.length,1000);for(const n of ids)assert(questions.some(q=>q.number===n))});
+check('Figures and tables remain inline HTML assets',()=>{const html=Object.values(full.sections).map(s=>s.html).join('');assert(html.includes('<table'));assert(html.includes('<figure'));const pics=[...html.matchAll(/src="\.\/assets\/figures\/([^"?]+)"/g)];assert(pics.length>=38);for(const p of pics)assert(fs.existsSync(path.join(root,'assets/figures',p[1])))});
+check('Full reading data has substantive content in each section',()=>{for(const [id,x] of Object.entries(full.sections)){assert(x.html.length>300,id);assert(x.approx_words>40,id)}});
+check('New HTML reader loads versioned JS/CSS and data assets',()=>{for(const p of ['notes.html','volume1.html']){const x=read(p);for(const f of ['notes-v12.js','notes-v12.css','full_notes-v12.js'])assert(x.includes(f),p+' '+f)}});
+const state={hash:'#contents',search:'',main:'',nav:'',top:'',mobile:''};
+const stub=(id)=>({id,innerHTML:'',textContent:'',href:'',value:'',classList:{remove(){},toggle(){}},addEventListener(){},setAttribute(){},focus(){},scrollIntoView(){}});
+const els=new Map();for(const id of ['main-notes','chapter-list','notes-sidebar','notes-search','reader-quicknav','notes-mobile-back','toggle-chapters','progress-total'])els.set(id,stub(id));
+const w={IFDSM_CHAPTERS:chapters,IFDSM_FULL_NOTES:full,addEventListener(){},scrollTo(){},scrollY:0};
+const loc={search:'',get hash(){return state.hash}};
+const d={getElementById(id){return els.get(id)||null}};
+const cx={window:w,location:loc,document:d,URLSearchParams,localStorage:C.localStorage,requestAnimationFrame:()=>{},console};
+vm.runInNewContext(read('assets/notes-v12.js'),cx,{filename:'assets/notes-v12.js'});
+check('Contents index renders ten chapter links',()=>{assert(els.get('main-notes').innerHTML.includes('Notes in Dental Sleep Medicine'));assert((els.get('main-notes').innerHTML.match(/class="overview-card"/g)||[]).length===10)});
+for(const c of chapters){state.hash='#chapter-'+c.id; const context={};const els2=new Map(); for(const id of ['main-notes','chapter-list','notes-sidebar','notes-search','reader-quicknav','notes-mobile-back','toggle-chapters','progress-total'])els2.set(id,stub(id));const doc={getElementById(id){return els2.get(id)||null}};const cx2={window:{...w},location:loc,document:doc,URLSearchParams,localStorage:C.localStorage,requestAnimationFrame:()=>{},console};vm.runInNewContext(read('assets/notes-v12.js'),cx2,{filename:'assets/notes-v12.js'});const html=els2.get('main-notes').innerHTML;check('Chapter '+c.id+' displays '+c.sections.length+' lessons in full before SBAs',()=>{assert.equal((html.match(/class="study-visible-lesson"/g)||[]).length,c.sections.length);assert.equal((html.match(/class="study-body"/g)||[]).length,c.sections.length);assert(!html.includes('<details class="study-details"'));assert(!html.includes('Read full explanation'));assert(html.includes('SBA practice'));for(const s of c.sections){const pos=html.indexOf('id="lesson-'+s.id+'"');const qpos=html.indexOf('class="qbar"',pos);assert(pos>=0&&qpos>pos,s.id);assert(html.slice(pos,qpos).includes(full.sections[s.id].html.slice(0,100)),s.id+' body');assert(html.includes('href="./index.html#browse-detail?question='+s.question_ids[0]),s.id+' link')}});}
+check('All website navigation points to new reader',()=>{const html=read('index.html')+read('assets/app.js');assert(html.includes('./volume1.html'));assert(!read('assets/app.js').includes('./notes.html'))});
+check('Offline worker installs fresh versioned assets',()=>{const sw=read('sw.js');for(const f of ['volume1.html','notes-v12.js','notes-v12.css','full_notes-v12.js'])assert(sw.includes(f),f);assert(sw.includes('v12'))});
+check('Existing SBA data and local storage key unchanged',()=>{assert(read('assets/app.js').includes("const KEY = 'ifdsm-sba-examstyle-v2'"));assert(read('assets/notes-v12.js').includes("const storageKey='ifdsm-sba-examstyle-v2'"));});
+console.log('TOTAL:',count,'checks');
