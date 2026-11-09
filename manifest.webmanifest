@@ -1,7 +1,7 @@
 {
-  "name": "IFDSM — The Question Bank",
-  "short_name": "IFDSM SBA",
-  "description": "Dental Sleep Medicine • 1,000 SBA clinical and knowledge questions with answer explanations.",
+  "name": "IFDSM — Dental Sleep Medicine Revision",
+  "short_name": "IFDSM Study",
+  "description": "Unified Volume I online chapters and Volume II 1,000 SBA bank, with reading and answering in one app.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
@@ -9,7 +9,17 @@
   "background_color": "#f7f8f6",
   "theme_color": "#10263f",
   "icons": [
-    {"src":"./assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"./assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

@@ -1,34 +1,21 @@
-# IFDSM Dental Sleep Medicine — FPros-style HTML reader (revision 21)
+# IFDSM v24 — Working Volume I link repair
 
-This edition replaces the previous `notes.html` redirect with **one complete, searchable chapter-reader page** modeled on the owner's DipProstho Volume I reader.
+This release restores the actual **813 KB `notes.html` full textbook** that was accidentally replaced by a 924-byte redirect in the prior integrated package. The earlier package's `index.html#notebook` route went to an internal chapter preview rather than the user-requested notebook.
 
-## Open the lessons
+## Exact links
+- **Open Volume I** and **Explore Notebook**: https://drowenkam.github.io/IFDSM/notes.html?v=21
+- **Study Chapter 1 in HTML**: https://drowenkam.github.io/IFDSM/notes.html?v=21#unit-1
+- **Full §1.1 teaching lesson**: https://drowenkam.github.io/IFDSM/notes.html?v=21#section-1.1
+- **SBA bank**: https://drowenkam.github.io/IFDSM/index.html#practice
 
-- **Main reader / chapter directory:** `notes.html?v=21#chapters`
-- **Full Chapter 1:** `notes.html?v=21#unit-1`
-- **A particular learning section:** `notes.html?v=21#section-1.1`
-- **Keypoints for Chapter 1:** `notes.html?v=21#keypoints-1`
-- **SBA home and saved progress:** `index.html#home`
+The desktop **Study notebook** and mobile **Notes** navigation are now ordinary HTML links. The original complete `notes.html` is included in this ZIP. From the notes, an SBA link returns to the same question-bank site. SBA explanations link back to the relevant HTML section. All question data and saved-progress keys are unchanged.
 
-The full teaching material is **inline in `notes.html`**, not behind `reader.html`, expandable panels, scripts that fetch content, or PDF page viewers. Each section has: keypoint → entire teaching lesson with tables/figures → links to its mapped SBAs. The reader has permanent Chapters, Keypoints, Search, and Top navigation.
+## Install to existing GitHub Pages
+1. Back up progress from the live Progress page.
+2. Extract this ZIP and upload **its contents, not the ZIP itself**, to the root of the `drowenkam/IFDSM` repository, replacing the old files. In particular, replace `index.html`, `assets/app.js`, `assets/styles.css`, `notes.html`, and `sw.js`.
+3. Check GitHub's repository view that `notes.html` is approximately **813 KB**, not the old 924-byte redirect. If it is still tiny, the old file remains published.
+4. After deployment, open `https://drowenkam.github.io/IFDSM/index.html?v=24` in a fresh browser tab while online. Click **Open Volume I** and **Study Chapter 1 in HTML**.
+5. If Safari still shows the old buttons, the updated files are not yet deployed or an old service worker is controlling the tab. Refresh online, then reopen in a new Safari tab; do not rely on the home-screen icon until Safari has the new version.
 
-## Publishing to GitHub Pages
-
-1. **Back up your SBA progress** from the existing website's Progress page.
-2. Unzip this archive. Upload **all the files and folders from inside it** to the root of the existing IFDSM GitHub repository. In particular, replace `notes.html`, `index.html`, `assets/app.js`, and `sw.js`; keep the `assets/figures` and `data` folders.
-3. Commit the changes to the branch and directory GitHub Pages already publishes.
-4. Open your published site online and visit `https://YOUR-USER.github.io/YOUR-IFDSM-REPOSITORY/notes.html?v=21#chapters` directly. It should display the chapter directory; selecting **Read chapter** should jump to the complete lessons in that same HTML page.
-5. For an installed iPhone/iPad home-screen app, open the published URL in Safari online at least once after deploying to update cached files. This release uses a new service-worker cache name and versioned reading links.
-
-**Important:** This ZIP is a replacement package, not a deployment. Your live GitHub Pages website will remain unchanged until these contents are committed to the actual repository. The ZIP is HTML-first and excludes large optional PDFs to simplify GitHub uploading.
-
-## Files
-
-- `notes.html` — one complete, standalone HTML reading page, 10 chapters, 78 sections, 105 tables, 38 illustrations, 1,000 SBA references.
-- `index.html`, `assets/app.js`, `data/questions.js`, `data/keypoints.js` — the existing scored SBA application with the corrected reader navigation.
-- `assets/figures` — image files referenced by the HTML lessons.
-- `sw.js`, `manifest.webmanifest` — installable offline support, revision 21.
-- `book/chapter-XX.html` — older direct chapter URLs retained so existing links still display teaching material.
-- `QA_READER.md`, `qa/*.json`, `qa/check-webapp.js`, `qa/validate_links.py` — verification evidence and reproducible tests.
-
-The bank answer keys, question IDs and locally saved progress storage key have not been changed.
+## Verification scope
+Static ZIP checks and local real-browser click navigation are included in `QA_LINKS.md`. We cannot publish files to your GitHub account from this chat, and have not verified the live deployment or physical Safari.
