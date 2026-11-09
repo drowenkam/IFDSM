@@ -182,7 +182,7 @@
       <section class="notebook-promo" aria-label="Companion revision notebook">
         <img src="./assets/notebook-cover.webp" width="90" height="128" loading="lazy" alt="Cover of Notes in Dental Sleep Medicine — integrated final edition" />
         <div class="notebook-promo-text"><div class="eyebrow">Volume I · Final integrated notebook</div><h2>Study the full revision notes alongside the questions</h2><p>Volume I is now a complete static HTML textbook: all ten chapters, 78 learning outcomes, original illustrations, tables and explanations — with direct links to the 1,000 SBAs. No PDF viewer is needed.</p>
-          <div class="notebook-promo-actions"><a href="./notes.html?v=21#chapters" class="btn btn-primary">Read Volume I · Full lessons →</a><a href="./notes.html?v=21#chapters" class="btn btn-outline">Volume I chapters →</a><a href="./notes.html?v=21#unit-1" class="btn btn-outline">Read full Chapter 1 online →</a></div>
+          <div class="notebook-promo-actions"><a href="https://drowenkam.github.io/IFDSM/notes.html?v=21" class="btn btn-primary" aria-label="Explore Notebook — open Volume I full HTML notes">📖 Explore Notebook →</a><a href="./notes.html?v=21#chapters" class="btn btn-outline">Volume I chapters →</a><a href="./notes.html?v=21#unit-1" class="btn btn-outline">Read full Chapter 1 online →</a></div>
         </div>
       </section>
       <section><div class="section-head"><div><div class="eyebrow">Complete syllabus coverage</div><h2>Explore the ten topics</h2></div><button class="btn btn-small btn-outline" data-action="nav" data-view="browse" type="button">Browse all questions</button></div>
@@ -408,7 +408,7 @@
         <img src="./assets/notebook-cover.webp" width="200" height="285" alt="Cover of Notes in Dental Sleep Medicine" />
         <div class="notebook-overview-text"><div class="eyebrow">November 2026 · Clinical SBA keypoint revision</div><h2>Updated integrated revision notebook</h2>
           <p>78 revised learning-outcome takeaways, 30 clinical mini-cases and examiner traps, with the original comprehensive teaching content preserved.</p>
-          <div class="notebook-promo-actions"><a href="./notes.html?v=21#chapters" class="btn btn-primary">Open Volume I · Chapter reader →</a><a href="./book/reference-numbers.html" class="btn btn-outline">Master numbers online →</a><a class="btn btn-outline" href="./notes.html?v=21#unit-1">Study chapter 1 in HTML →</a></div>
+          <div class="notebook-promo-actions"><a href="https://drowenkam.github.io/IFDSM/notes.html?v=21" class="btn btn-primary" aria-label="Explore Notebook — open the chapter reader">📖 Explore Notebook →</a><a href="./book/reference-numbers.html" class="btn btn-outline">Master numbers online →</a><a class="btn btn-outline" href="./notes.html?v=21#unit-1">Study chapter 1 in HTML →</a></div>
           <p class="notebook-fineprint">Read all sections, original diagrams and tables in the website itself. The PDF is kept only as an optional archival download.</p>
         </div>
       </section>

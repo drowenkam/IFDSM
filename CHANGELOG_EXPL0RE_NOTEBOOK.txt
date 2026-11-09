@@ -1,0 +1,5 @@
+Explore Notebook navigation fix
+Exact destination: https://drowenkam.github.io/IFDSM/notes.html?v=21
+Updated: homepage Explore Notebook button, Volume I overview button, desktop header link, mobile Notes icon.
+Bumped app.js stylesheet URL version and service-worker cache identifier to reduce stale page problems.
+No SBA questions, answer keys, progress logic or study content changed.
